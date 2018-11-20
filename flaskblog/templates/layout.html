@@ -13,6 +13,7 @@
 </head>
 <body>
     <header class="site-header">
+    {% if current_user.is_authenticated %}
       <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
         <div class="container">
           <div class="collapse navbar-collapse" id="navbarToggle">
@@ -20,20 +21,16 @@
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
-              {% if current_user.is_authenticated %}
                 <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>&nbsp&nbsp
                 <a class="nav-item nav-link" href="{{ url_for('new_note') }}">Create Note</a>&nbsp&nbsp
                 <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>&nbsp&nbsp
                 <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>&nbsp&nbsp&nbsp
                 <a class="nav-item nav-link">Hi {{ current_user.firstname }} !</a>
-              {% else %}
-                <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>
-                <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
-              {% endif %}
             </div>
           </div>
         </div>
       </nav>
+    {% endif %}
     </header>
     <main role="main" class="container">
       <div class="row">

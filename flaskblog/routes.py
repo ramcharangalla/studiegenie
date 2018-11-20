@@ -7,10 +7,22 @@ import datetime
 now = datetime.datetime.now()
 
 
-@app.route("/")
-@app.route("/index")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/index", methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
+        else:
+            flash('Login Unsuccessful. Please check email and password', 'danger')
+    return render_template('index.html', title='Login', form=form)
+
 
 
 @app.route("/home")
@@ -37,38 +49,39 @@ def register():
             db.session.commit()
         db.session.commit()
         flash(f'Account created for {form.firstname.data}!','success')
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))
     return render_template('register.html', title='Register', form=form)
 
 
 
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
-        else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
-    return render_template('login.html', title='Login', form=form)
+# @app.route("/login", methods=['GET', 'POST'])
+# def login():
+#     if current_user.is_authenticated:
+#         return redirect(url_for('home'))
+#     form = LoginForm()
+#     if form.validate_on_submit():
+#         user = User.query.filter_by(email=form.email.data).first()
+#         if user and bcrypt.check_password_hash(user.password, form.password.data):
+#             login_user(user, remember=form.remember.data)
+#             next_page = request.args.get('next')
+#             return redirect(next_page) if next_page else redirect(url_for('home'))
+#         else:
+#             flash('Login Unsuccessful. Please check email and password', 'danger')
+#     return render_template('login.html', title='Login', form=form)
 
 @app.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 
 @app.route("/account")
 @login_required
 def account():
+    user = User.query.filter_by(id=current_user.id).first_or_404()
     notes = Note.query.order_by(Note.date_created.desc()).filter_by(user_id = current_user.id)
     notecount = Note.query.filter_by(user_id = current_user.id).count()
-    return  render_template('account.html', notes = notes, count = notecount)
+    return  render_template('account.html', notes = notes, count = notecount, user = user)
 
 @app.route("/note/new", methods=['GET', 'POST'])
 @login_required

@@ -9,6 +9,11 @@
     <h5>Last Name: {{ current_user.lastname }} </h5>
     <p class="text-secondary"> Email: {{ current_user.email }}</p>
     <p class="text-secondary"> No of Notes: {{ count }}</p>
+    <p class="text-secondary"> Intrested Topics:
+    {% for n in user.usertags %}
+      <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
+    {% endfor %}
+    </p>
 </div>
 <br>
 <h2>My Notes</h2>
