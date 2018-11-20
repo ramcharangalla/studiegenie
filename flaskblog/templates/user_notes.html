@@ -3,9 +3,11 @@
 <div class="article-metadata">
   <h2> {{ user.firstname }} </h2>
   <p class="text-secondary"> No of Notes: {{ count }}</p>
+  <p class="text-secondary"> Interested Topics:
   {% for n in user.usertags %}
-      <p class="text-secondary"> Intrested Topics: <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a></p>
+    <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
   {% endfor %}
+  </p>
 </div>
 <br>
 <br>
