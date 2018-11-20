@@ -7,7 +7,7 @@ my_choices = [('1', 'Java'), ('2', 'C++'), ('3', 'Python'),
             ('4', 'JavaScript'), ('5', 'Angular'), ('6', 'React'),
             ('7', 'MongoDB'), ('8', 'HTML'), ('9', 'CSS'),('10', 'Node.js')]
 
-
+#registration form
 class RegistrationForm(FlaskForm):
 
     firstname = StringField('First Name', validators=[DataRequired(), Length(min=2, max=20)])
