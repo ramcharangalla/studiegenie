@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="article-metadata">
+  <h2>{{ tags.name }} Notes</h2>
+  <p class="text-secondary"> No of Notes: {{ tagcount }}</p>
+</div>
+<br>
+<br>
+<br>
+{% for n in tags.notetags %}
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          <a class="mr-2" href="{{ url_for('user_notes', user_id=n.author.id) }}">{{ n.author.firstname }}</a>&nbsp&nbsp
+          <small class="text-muted">{{ n.date_created.strftime('%Y-%m-%d') }}</small>
+        </div>
+        <div class="article-metadata">
+          <h2><a class="article-title" href="{{ url_for('note', note_id=n.id) }}">{{ n.title }}</a></h2><br>
+          <p class="article-content">{{ n.content }}</p><br>
+        </div>
+        {% for i in n.notetags %}
+          <a class="mr-2" href="{{ url_for('tags', tag_id=i.id) }}">{{ i.name }}</a>
+        {% endfor %}
+    </div>
+    </article>
+{% endfor %}
+{% endblock content %}

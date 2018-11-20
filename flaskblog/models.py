@@ -13,7 +13,8 @@ class User(db.Model, UserMixin):
     lastname = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    # preferences = db.Column(db.String(200), nullable=False)
+    note = db.relationship('Note', backref='author', lazy=True)
+
 
     def __repr__(self):
         return f"User('{self.firstname}', '{self.lastname}', '{self.email}')"
@@ -21,6 +22,8 @@ class User(db.Model, UserMixin):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    usertags = db.relationship('User', secondary='tagmapper', backref=db.backref('usertags', lazy='dynamic'))
+    notetags = db.relationship('Note', secondary='notemapper', backref=db.backref('notetags', lazy='dynamic'))
 
     def __repr__(self):
         return f"Post('{self.id}', '{self.name}')"
@@ -31,15 +34,14 @@ class Note(db.Model):
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), nullable=False)
 
     def __repr__(self):
         return f"Note('{self.title}', '{self.date_created}')"
 
 tagmapper = db.Table('tagmapper',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True))
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')))
 
 notemapper = db.Table('notemapper',
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
-    db.Column('note_id', db.Integer, db.ForeignKey('note.id'), primary_key=True))
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
+    db.Column('note_id', db.Integer, db.ForeignKey('note.id')))

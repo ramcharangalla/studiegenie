@@ -1,21 +1,27 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="article-metadata">
-  <h2>All Notes</h2>
+  <h2> {{ user.firstname }} </h2>
+  <p class="text-secondary"> No of Notes: {{ count }}</p>
+  {% for n in user.usertags %}
+      <p class="text-secondary"> Intrested Topics: <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a></p>
+  {% endfor %}
 </div>
 <br>
+<br>
+<h2>Notes</h2>
 <br>
 {% for note in notes %}
     <article class="media content-section">
       <div class="media-body">
         <div class="article-metadata">
-          <a class="mr-2" href="{{ url_for('user_notes', user_id=note.author.id) }}">{{ note.author.firstname }}</a>&nbsp&nbsp
+          <!-- <a class="mr-2" href="{{ url_for('user_notes', user_id=note.author.id) }}">{{ note.author.firstname }}</a> -->
           <small class="text-muted">{{ note.date_created.strftime('%Y-%m-%d') }}</small>
         </div>
         <div class="article-metadata">
           <h2><a class="article-title" href="{{ url_for('note', note_id=note.id) }}">{{ note.title }}</a></h2><br>
           <p class="article-content">{{ note.content }}</p><br>
-      </div>
+        </div>
       {% for n in note.notetags %}
         <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
       {% endfor %}
