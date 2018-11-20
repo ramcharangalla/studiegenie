@@ -157,3 +157,18 @@ def tags(tag_id):
     tags = Tag.query.get_or_404(tag_id)
     tagcount = Tag.query.filter_by(id = tag_id).count()
     return render_template('tags.html', tags=tags, tagcount = tagcount)
+
+
+@app.errorhandler(404)
+def error_404(error):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(403)
+def error_403(error):
+    return render_template('403.html'), 403
+
+
+@app.errorhandler(500)
+def error_500(error):
+    return render_template('500.html'), 500
