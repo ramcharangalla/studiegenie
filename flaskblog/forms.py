@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,SelectField,SelectMultipleField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,SelectField,SelectMultipleField, TextAreaField, RadioField
 from wtforms.validators import ValidationError,DataRequired, Length, Email, EqualTo
 from flaskblog.models import User
 
@@ -34,10 +34,16 @@ class NoteForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     content = TextAreaField('Content', validators=[DataRequired()])
     interests=SelectMultipleField('Interests', choices=my_choices, default = ['1'])
+    display_mode = RadioField('Mode', choices=[('public','Public'),('private','Private')])
     submit = SubmitField('Create Note')
 
 class NoteFormUpdate(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     content = TextAreaField('Content', validators=[DataRequired()])
     interests=SelectMultipleField('Interests', choices=my_choices, default = ['1'])
+    display_mode = RadioField('Mode', choices=[('public','Public'),('private','Private')])
     submit = SubmitField('Update Note')
+
+class LikeForm(FlaskForm):
+    submitlike = SubmitField('Like')
+    submitunlike = SubmitField('UnLike')

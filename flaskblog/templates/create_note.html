@@ -44,6 +44,17 @@
                     {{ form.interests(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+            <div class="form-group">
+                {{ form.display_mode.label(class="form-control-label") }}
+                <br>
+                {% for subfield in form.display_mode %}
+                <tr>
+                    <td>{{ subfield }}</td>
+                    <td>{{ subfield.label }}</td>&nbsp&nbsp
+
+                </tr>
+                {% endfor %}
+            </div>
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}

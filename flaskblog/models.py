@@ -28,15 +28,28 @@ class Tag(db.Model):
     def __repr__(self):
         return f"Post('{self.id}', '{self.name}')"
 
+class Interaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    event = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Interaction('{self.event}', '{self.user_id}', '{self.note_id}',, '{self.date}')"
+
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
+    mode = db.Column(db.String(10), nullable=False)
+    likes = db.Column(db.Integer, default= 0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return f"Note('{self.title}', '{self.date_created}')"
+
 
 tagmapper = db.Table('tagmapper',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),

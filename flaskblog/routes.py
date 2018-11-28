@@ -1,8 +1,8 @@
-from flask import Flask, render_template, url_for, flash, redirect, request, abort
-from flaskblog.forms import RegistrationForm, LoginForm, NoteForm, NoteFormUpdate
+from flask import Flask, render_template, url_for, flash, redirect, request, abort, session
+from flaskblog.forms import RegistrationForm, LoginForm, NoteForm, NoteFormUpdate, LikeForm
 from flaskblog import app,db,bcrypt
 from flask_login import login_user,current_user,logout_user, login_required
-from flaskblog.models import User, Tag, Note
+from flaskblog.models import User, Tag, Note, Interaction
 import datetime
 now = datetime.datetime.now()
 
@@ -18,6 +18,7 @@ def index():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
+            session['likes'] = 0
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
@@ -27,8 +28,58 @@ def index():
 
 @app.route("/home")
 def home():
-    notes = Note.query.order_by(Note.date_created.desc()).all()
+    notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     return render_template('home.html', notes = notes)
+
+@app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
+@login_required
+def like(note_id):
+    notes = Note.query.get_or_404(note_id)
+    like = session.get('likes')
+    if like != 0:
+        notes.likes = notes.likes - 1
+        session['likes'] = 0
+        db.session.commit()
+    else:
+        notes.likes = notes.likes + 1
+        session['likes'] = 1
+        db.session.commit()
+    notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes = notes1)
+
+@app.route("/note/<int:note_id>/bookmark", methods=['GET', 'POST'])
+@login_required
+def bookmark(note_id):
+    notes = Note.query.get_or_404(note_id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='bookmark', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
+    notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes = notes1)
+
+@app.route("/note/<int:note_id>/follow", methods=['GET', 'POST'])
+@login_required
+def follow(note_id):
+    notes = Note.query.get_or_404(note_id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='follow', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
+    notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes = notes1)
+
+@app.route("/note/<int:note_id>/comment", methods=['GET', 'POST'])
+@login_required
+def comment(note_id):
+    notes = Note.query.get_or_404(note_id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='comment', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
+    notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes = notes1)
+
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -71,6 +122,7 @@ def register():
 
 @app.route("/logout")
 def logout():
+    session.pop('likes', None)
     logout_user()
     return redirect(url_for('index'))
 
@@ -88,7 +140,7 @@ def account():
 def new_note():
     form = NoteForm()
     if form.validate_on_submit():
-        note = Note(title=form.title.data, content=form.content.data, user_id=current_user.id, date_created= now)
+        note = Note(title=form.title.data, content=form.content.data, user_id=current_user.id, date_created= now, mode=form.display_mode.data )
         db.session.add(note)
         db.session.commit()
         interests = form.interests.data
@@ -117,6 +169,7 @@ def update_note(note_id):
     if form.validate_on_submit():
         notes.title = form.title.data
         notes.content = form.content.data
+        notes.mode = form.display_mode.data
         for n in notes.notetags:
             tagid=Tag.query.filter_by(id=n.id).first()
             notes.notetags.remove(tagid)
@@ -134,6 +187,7 @@ def update_note(note_id):
     elif request.method == 'GET':
         form.title.data = notes.title
         form.content.data = notes.content
+        form.display_mode.data = notes.mode
         temp =[]
         for n in notes.notetags:
             temp.append(str(n.id))

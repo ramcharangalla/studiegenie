@@ -10,9 +10,18 @@
       <h2><a class="article-title">{{ note.title }}</a></h2><br>
       <p class="article-content">{{ note.content }}</p><br>
     </div>
-    {% for n in note.notetags %}
+    <div class="form-group">
+      {% for n in note.notetags %}
       <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
-    {% endfor %}
+      <p class="article-content"> No of Likes: {{ n.likes }}</p><br>
+      <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=n.id) }}">Like</a>&nbsp&nbsp
+      <a  class="btn btn-outline-info btn-sm" href="{{ url_for('bookmark', note_id=n.id) }}">Bookmark</a>&nbsp&nbsp
+      <a  class="btn btn-outline-info btn-sm" href="{{ url_for('follow', note_id=n.id) }}">Follow</a>
+      <br>      <br>
+      <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
+      <p><a class="btn btn-outline-primary btn-sm" href="{{ url_for('comment', note_id=n.id) }}" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"> Comment </a></p>
+      {% endfor %}
+    </div>
     </div>
   </article>
   {% if note.author.id == current_user.id %}
