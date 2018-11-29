@@ -2,9 +2,72 @@ from flask import Flask, render_template, url_for, flash, redirect, request, abo
 from flaskblog.forms import RegistrationForm, LoginForm, NoteForm, NoteFormUpdate, LikeForm
 from flaskblog import app,db,bcrypt
 from flask_login import login_user,current_user,logout_user, login_required
-from flaskblog.models import User, Tag, Note, Interaction
+from flaskblog.models import User, Tag, Note, Interaction, get_notes_df, get_interactions_df
 import datetime
 now = datetime.datetime.now()
+import math
+import pandas as pd
+
+import numpy as np
+import scipy
+import math
+import random
+import sklearn
+from nltk.corpus import stopwords
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.sparse.linalg import svds
+
+
+def smooth_user_preference(x):
+    return math.log(1+x, 2)
+
+event_type_strength = {
+   'view': 1.0,
+   'like': 2.0, 
+   'bookmark': 2.5, 
+   'follow': 3.0,
+   'comment': 4.0,
+}
+note_id = 'contentId'
+notes_userid = 'authorPersonId'
+content_col = 'text'
+interactions_userid = 'personId'
+app.notes_df = get_notes_df()
+app.interactions_df = get_interactions_df()
+print('NOTES')
+print(app.notes_df)
+print('app interactions')
+print(app.interactions_df)
+app.interactions_df['eventStrength'] = app.interactions_df['eventType'].apply(lambda x: event_type_strength[x])
+
+app.users_interactions_count_df = app.interactions_df.groupby([interactions_userid, note_id]).size().groupby(interactions_userid).size()
+print('app.users_interactions_count_df')
+print(app.users_interactions_count_df)
+
+app.users_with_enough_interactions_df = app.users_interactions_count_df[app.users_interactions_count_df >= 0].reset_index()[[interactions_userid]]
+
+app.interactions_from_selected_users_df = app.interactions_df.merge(app.users_with_enough_interactions_df, 
+               how = 'right',
+               left_on = interactions_userid,
+               right_on = interactions_userid)
+
+
+app.interactions_full_df = app.interactions_from_selected_users_df \
+                    .groupby([interactions_userid, note_id])['eventStrength'].sum() \
+                    .apply(smooth_user_preference).reset_index()
+app.interactions_full_indexed_df = app.interactions_full_df.set_index(interactions_userid)
+print(app.interactions_full_indexed_df)
+
+def get_items_interacted(userid, interactions_df):
+    ret = []
+    try:
+        interacted_items = interactions_df.loc[userid][note_id]
+    except:
+        pass
+        return ret
+    return set(interacted_items if type(interacted_items) == pd.Series else [interacted_items])
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -28,8 +91,19 @@ def index():
 
 @app.route("/home")
 def home():
-    notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    return render_template('home.html', notes = notes)
+    trending_notes = get_personal_recommendations(current_user.id,topn=1000)
+    content_notes = get_content_based_recommendations(current_user.id,topn=7)
+    #flash(f'Rec notes {rec_notes['contentId']}!','success')
+    ids = content_notes['contentId']
+    trending_ids = trending_notes['contentId']
+    print('IDS')
+    print(ids)
+    # if len(ids) > 0:
+    notes_c =  Note.query.filter(Note.id.in_(ids)).all()
+    notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
+    # else:
+    #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c )
 
 @app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
 @login_required
@@ -44,6 +118,10 @@ def like(note_id):
         notes.likes = notes.likes + 1
         session['likes'] = 1
         db.session.commit()
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='like', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
     notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     return render_template('home.html', notes = notes1)
 
@@ -239,3 +317,158 @@ def error_403(error):
 @app.errorhandler(500)
 def error_500(error):
     return render_template('500.html'), 500
+
+
+
+
+
+class ProfileBuilder:
+    def __init__(self,tfidf_matrix,item_ids):
+        self.tfidf_matrix = tfidf_matrix
+        self.item_ids = item_ids
+
+    def get_item_profile(self,item_id):
+        idx = self.item_ids.index(item_id)
+        item_profile = self.tfidf_matrix[idx:idx+1]
+        return item_profile
+
+    def get_item_profiles(self,ids):
+        item_profiles_list = [self.get_item_profile(x) for x in ids]
+        item_profiles = scipy.sparse.vstack(item_profiles_list)
+        return item_profiles
+
+    def build_users_profile(self,person_id, interactions_indexed_df):
+        interactions_person_df = interactions_indexed_df.loc[person_id]
+        user_item_profiles = self.get_item_profiles(interactions_person_df[note_id])
+        
+        user_item_strengths = np.array(interactions_person_df['eventStrength']).reshape(-1,1)
+        #Weighted average of item profiles by the interactions strength
+        user_item_strengths_weighted_avg = np.sum(user_item_profiles.multiply(user_item_strengths), axis=0) / np.sum(user_item_strengths)
+        user_profile_norm = sklearn.preprocessing.normalize(user_item_strengths_weighted_avg)
+        return user_profile_norm
+
+    def build_users_profiles(self): 
+        interactions_indexed_df = app.interactions_full_df[app.interactions_full_df[note_id] \
+                                                       .isin(app.notes_df[note_id])].set_index(interactions_userid)
+        user_profiles = {}
+        for person_id in interactions_indexed_df.index.unique():
+            user_profiles[person_id] = self.build_users_profile(person_id, interactions_indexed_df)
+        return user_profiles
+
+
+
+class PopularityRecommender:
+    
+    MODEL_NAME = 'Popularity'
+    
+    def __init__(self, popularity_df, items_df=None):
+        self.popularity_df = popularity_df
+        self.items_df = items_df
+        
+    def get_model_name(self):
+        return self.MODEL_NAME
+
+    def get_items_interacted(self,userid, interactions_df):
+        try:
+            interacted_items = interactions_df.loc[userid][note_id]
+        except:
+            pass
+            return []
+        return set(interacted_items if type(interacted_items) == pd.Series else [interacted_items])
+        
+    def recommend_items(self, user_id, items_to_ignore=[], topn=10, verbose=False):
+        # Recommend the more popular items that the user hasn't seen yet.
+        recommendations_df = self.popularity_df[~self.popularity_df[note_id].isin(items_to_ignore)] \
+                               .sort_values('eventStrength', ascending = False) \
+                               .head(topn)
+
+        if verbose:
+            if self.items_df is None:
+                raise Exception('"items_df" is required in verbose mode')
+
+            recommendations_df = recommendations_df.merge(self.items_df, how = 'left', 
+                                                          left_on = note_id, 
+                                                          right_on = note_id)[['eventStrength', note_id, content_col]]
+
+
+        return recommendations_df
+
+
+class ContentBasedRecommender:
+    
+    MODEL_NAME = 'Content-Based'
+    
+    def __init__(self, item_ids,items_df,user_profiles,tfidf_matrix):
+        self.item_ids = item_ids
+        self.items_df = items_df
+        self.user_profiles = user_profiles
+        self.tfidf_matrix = tfidf_matrix
+        
+    def get_model_name(self):
+        return self.MODEL_NAME
+        
+    def _get_similar_items_to_user_profile(self, person_id, topn=1000):
+        #Computes the cosine similarity between the user profile and all item profiles
+        cosine_similarities = cosine_similarity(self.user_profiles[person_id], self.tfidf_matrix)
+        #Gets the top similar items
+        similar_indices = cosine_similarities.argsort().flatten()[-topn:]
+        #Sort the similar items by similarity
+        similar_items = sorted([(self.item_ids[i], cosine_similarities[0,i]) for i in similar_indices], key=lambda x: -x[1])
+        return similar_items
+        
+    def recommend_items(self, user_id, items_to_ignore=[], topn=10, verbose=False):
+        similar_items = self._get_similar_items_to_user_profile(user_id)
+        #Ignores items the user has already interacted
+        similar_items_filtered = list(filter(lambda x: x[0] not in items_to_ignore, similar_items))
+        
+        recommendations_df = pd.DataFrame(similar_items_filtered, columns=[note_id, 'recStrength']) \
+                                    .head(topn)
+
+        if verbose:
+            if self.items_df is None:
+                raise Exception('"items_df" is required in verbose mode')
+
+            recommendations_df = recommendations_df.merge(self.items_df, how = 'left', 
+                                                          left_on = note_id, 
+                                                          right_on = note_id)[['recStrength', note_id,content_col]]
+
+        return recommendations_df
+
+
+
+
+def get_personal_recommendations(for_user_id,topn=10,verbose=False):
+    print('get_personal_recommendations')
+    print(app.interactions_full_indexed_df)
+    print('get_personal_recommendations')
+    item_popularity_df = app.interactions_full_indexed_df.groupby(note_id)['eventStrength'].sum().sort_values(ascending=False).reset_index()
+    print(item_popularity_df.head(10))
+
+    popularity_model = PopularityRecommender(item_popularity_df, app.notes_df)
+    recommendations_df = popularity_model.recommend_items(for_user_id,items_to_ignore=get_items_interacted(for_user_id,app.interactions_full_indexed_df),topn=topn,verbose=verbose)
+    print('Recommended items: Trending notes')
+    print(recommendations_df.head(10))
+    return recommendations_df
+
+
+def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
+    stopwords_list = stopwords.words('english')
+    vectorizer = TfidfVectorizer(analyzer='word',
+                     ngram_range=(1, 2),
+                     min_df=0.003,
+                     max_df=0.5,
+                     max_features=5000,
+                     stop_words=stopwords_list)
+    item_ids = app.notes_df[note_id].tolist()
+    tfidf_matrix = vectorizer.fit_transform(app.notes_df[content_col])
+    tfidf_feature_names = vectorizer.get_feature_names()
+    #print tfidf_matrix
+    profile_builer = ProfileBuilder(tfidf_matrix,item_ids)
+    user_profiles = profile_builer.build_users_profiles()
+    print('User profiles')
+    print(user_profiles)
+    content_based_recommender_model = ContentBasedRecommender(item_ids, app.notes_df,user_profiles,tfidf_matrix)
+    recommendations_df = content_based_recommender_model.recommend_items(for_user_id,items_to_ignore=get_items_interacted(for_user_id,app.interactions_full_indexed_df),topn=topn,verbose=verbose)
+    print('recommened notes')
+    print(recommendations_df)
+    return recommendations_df

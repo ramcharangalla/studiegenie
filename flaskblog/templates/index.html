@@ -1,9 +1,9 @@
-{% extends "layout.html" %}
+{% extends "layout0.html" %}
 {% block content %}
-<h1 style="color:blue;" align="center"> Studie Genie </h1>
-<br>
-<br>
-<br>
+
+<div class="knockout">
+<a>Studie Genie</a>
+</div>
 <div class="content-section">
         <form method="POST" action="">
         {{ form.hidden_tag() }}
@@ -43,9 +43,6 @@
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
         </div>
-        <small class="text-muted ml-2">
-            <a href="#">Forgot Password?</a>
-        </small>
     </form>
 </div>
 <div class="border-top pt-3">

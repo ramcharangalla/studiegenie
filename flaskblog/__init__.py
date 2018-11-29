@@ -14,5 +14,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
-
+app.notes_df = None
+app.interactions_df = None
 from flaskblog import routes
+

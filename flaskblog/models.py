@@ -1,10 +1,13 @@
 from datetime import datetime
 from flaskblog import db, login_manager
 from flask_login import UserMixin
+import pandas as pd
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
 
 
 class User(db.Model, UserMixin):
@@ -17,7 +20,7 @@ class User(db.Model, UserMixin):
 
 
     def __repr__(self):
-        return f"User('{self.firstname}', '{self.lastname}', '{self.email}')"
+        return f"User('{self.firstname}', '{self.lastname}', '{self.email}','{self.id}')"
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,7 +51,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Note('{self.title}', '{self.date_created}')"
+        return f"Note('{self.title}', '{self.date_created}','{self.mode}','{self.likes}')"
 
 
 tagmapper = db.Table('tagmapper',
@@ -58,3 +61,29 @@ tagmapper = db.Table('tagmapper',
 notemapper = db.Table('notemapper',
     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
     db.Column('note_id', db.Integer, db.ForeignKey('note.id')))
+
+
+def get_notes_df():
+    #notes_df = pd.read_csv(notes_f)
+    notes = Note.query.all()
+    notes_list = []
+    for note in notes:
+        d = {}
+        d['contentId'] = note.id
+        d['authorPersonId'] = note.user_id
+        d['title'] = note.title
+        d['text'] = note.content
+        notes_list.append(d)
+    notes_df = pd.DataFrame(notes_list)
+    return notes_df
+def get_interactions_df():
+    interactions = Interaction.query.all()
+    inters = []
+    for i in interactions:
+        d = {}
+        d['contentId'] = i.note_id
+        d['personId'] = i.user_id
+        d['eventType'] = i.event
+        inters.append(d)
+    interactions_df = pd.DataFrame(inters)
+    return interactions_df

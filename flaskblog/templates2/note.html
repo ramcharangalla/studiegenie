@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <a class="mr-2" href="{{ url_for('user_notes', user_id=note.author.id) }}">{{ note.author.firstname }}</a>&nbsp&nbsp
+        <small class="text-muted">{{ note.date_created.strftime('%Y-%m-%d') }}</small>
+      </div>
+      <div class="article-metadata">
+      <h2><a class="article-title">{{ note.title }}</a></h2><br>
+      <p class="article-content">{{ note.content }}</p><br>
+    </div>
+    <div class="form-group">
+      {% for n in note.notetags %}
+      <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
+      <p class="article-content"> No of Likes: {{ n.likes }}</p><br>
+      <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=n.id) }}">Like</a>&nbsp&nbsp
+      <a  class="btn btn-outline-info btn-sm" href="{{ url_for('bookmark', note_id=n.id) }}">Bookmark</a>&nbsp&nbsp
+      <a  class="btn btn-outline-info btn-sm" href="{{ url_for('follow', note_id=n.id) }}">Follow</a>
+      <br>      <br>
+      <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
+      <p><a class="btn btn-outline-primary btn-sm" href="{{ url_for('comment', note_id=n.id) }}" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"> Comment </a></p>
+      {% endfor %}
+    </div>
+    </div>
+  </article>
+  {% if note.author.id == current_user.id %}
+    <div align="left">
+      <a  class="btn btn-success btn-md mt-1 mb-1"  href="{{ url_for('update_note', note_id=note.id) }}">Update Note</a>
+      <button type="button" class="btn btn-danger btn-md m-1" data-toggle="modal" data-target="#deleteModal">Delete Note</button>
+    </div>
+  {% endif %}
+
+  <!-- Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to Delete the Post?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <form action="{{ url_for('delete_note', note_id=note.id) }}" method="POST">
+            <input class="btn btn-danger" type="submit" value="Delete">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
