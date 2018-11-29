@@ -44,6 +44,10 @@ def like(note_id):
         notes.likes = notes.likes + 1
         session['likes'] = 1
         db.session.commit()
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='like', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
     notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     return render_template('home.html', notes = notes1)
 
@@ -157,6 +161,10 @@ def new_note():
 @app.route("/note/<int:note_id>")
 def note(note_id):
     notes = Note.query.get_or_404(note_id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='view', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
     return render_template('note.html', note=notes)
 
 @app.route("/note/<int:note_id>/update", methods=['GET', 'POST'])
