@@ -96,12 +96,8 @@ def index():
 def home():
     trending_notes = get_personal_recommendations(current_user.id,topn=1000)
     content_notes = get_content_based_recommendations(current_user.id,topn=7)
-    #flash(f'Rec notes {rec_notes['contentId']}!','success')
     ids = content_notes['contentId']
     trending_ids = trending_notes['contentId']
-    # print('IDS')
-    # print(ids)
-    # if len(ids) > 0:
     notes_c =  Note.query.filter(Note.id.in_(ids)).all()
     notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
     # else:

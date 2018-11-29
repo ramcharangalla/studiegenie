@@ -55,42 +55,102 @@
    <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(drawChart);
-      function drawChart() 
+      function drawChart()
       {
-        var data = google.visualization.arrayToDataTable([
-          ['Task', 'Hours per Day'],
-          ['Work',     11],
-          ['Eat',      2],
-          ['Commute',  2],
-          ['Watch TV', 2],
-          ['Sleep',    7]
+
+        var Sneha = google.visualization.arrayToDataTable([
+          ['Topic', 'Notes'],
+          ['Inheritance',     9],
+          ['Loops',      5],
+          ['If',  8],
+          ['Else',  8],
+          ['Sorting',  1],
+          ['React',  1],
         ]);
-        var options = {title: 'My Daily Activities'};
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-        chart.draw(data, options);
+        var chart = new google.visualization.PieChart(document.getElementById('piecharts'));
+        chart.draw(Sneha);
+      }
+    </script>
+   <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart()
+      {
+        var Manoj = google.visualization.arrayToDataTable([
+          ['Topic', 'Notes'],
+          ['Inheritance',     9],
+          ['If',      4],
+          ['Switch',  2],
+          ['Elseif', 2],
+          ['React',    3]
+        ]);
+        var chart = new google.visualization.PieChart(document.getElementById('piechartm'));
+        chart.draw(Manoj);
+      }
+    </script>
+   <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart()
+      {
+        var Charan = google.visualization.arrayToDataTable([
+          ['Topic', 'Notes'],
+          ['Inheritance',     9],
+          ['Loops',      5],
+          ['If',  8],
+        ]);
+        var chart = new google.visualization.PieChart(document.getElementById('piechartc'));
+        chart.draw(Charan);
+      }
+    </script>
+   <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart()
+      {
+        var Raghu = google.visualization.arrayToDataTable([
+          ['Topic', 'Notes'],
+          ['React',     8],
+          ['Sorting',      6],
+          ['Switch',  4],
+        ]);
+        var chart = new google.visualization.PieChart(document.getElementById('piechartr'));
+        chart.draw(Raghu);
+      }
+    </script>
+   <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart()
+      {
+        var Hitesh = google.visualization.arrayToDataTable([
+          ['Topic', 'Notes'],
+          ['React',     9],
+          ['Loops',      1],
+          ['Inheritance',  8],
+        ]);
+        var chart = new google.visualization.PieChart(document.getElementById('piecharth'));
+        chart.draw(Hitesh);
       }
     </script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['sankey']});
       google.charts.setOnLoadCallback(drawChart);
-      function drawChart() 
+      function drawChart()
       {
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'From');
         data.addColumn('string', 'To');
         data.addColumn('number', 'Weight');
         data.addRows([
-          [ 'A', 'X', 5 ],
-          [ 'A', 'Y', 7 ],
-          [ 'A', 'Z', 6 ],
-          [ 'B', 'X', 2 ],
-          [ 'B', 'Y', 9 ],
-          [ 'B', 'Z', 4 ]
+          [ 'Manoj', 'Charan', 4 ],
+          [ 'Manoj', 'Hitesh', 7 ],
+          [ 'Manoj', 'Raghu', 5 ],
+          [ 'Sneha', 'Charan', 9 ],
+          [ 'Sneha', 'Hitesh', 4 ],
+          [ 'Sneha', 'Raghu', 3 ]
         ]);
 
-        // Sets chart options.
-        // var options = { width: 600, };
-        // Instantiates and draws our chart, passing in some options.
         var chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
         chart.draw(data);
       }
@@ -98,66 +158,26 @@
     <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(drawVisualization);
-      function drawVisualization() 
+      function drawVisualization()
       {
         // Some raw data (not necessarily accurate)
         var data = google.visualization.arrayToDataTable([
-          ['Month', 'Bolivia', 'Ecuador', 'Madagascar', 'Papua New Guinea', 'Rwanda', 'Average'],
-          ['2004/05',  165,      938,         522,             998,           450,      614.6],
-          ['2005/06',  135,      1120,        599,             1268,          288,      682],
-          ['2006/07',  157,      1167,        587,             807,           397,      623],
-          ['2007/08',  139,      1110,        615,             968,           215,      609.4],
-          ['2008/09',  136,      691,         629,             1026,          366,      569.6]
+          ['User', 'Inheritence', 'If case', 'React', 'Switch case', 'Loops', 'Sorting'],
+          ['Sneha',  9,      8,         1,             3,           5,      1],
+          ['Manoj',  4,      5,        9,             3,          7,      9],
+          ['Charan',  9,      7,        2,             5,           7,      2],
+          ['Hitesh',  8,      2,        9,             3,           2,      1],
+          ['Raghu',  1,      4,         8,             4,          2,      6]
         ]);
 
         var options = {
-          title : 'Monthly Coffee Production by Country',
-          vAxis: {title: 'Cups'},
-          hAxis: {title: 'Month'},
+          vAxis: {title: 'Count'},
+          hAxis: {title: 'Users'},
           seriesType: 'bars',
           series: {5: {type: 'line'}}
         };
-
         var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
         chart.draw(data, options);
-      }
-    </script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['gauge']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() 
-      {
-        var data = google.visualization.arrayToDataTable([
-          ['User', 'Posts'],
-          ['Memory', 80],
-          ['CPU', 55],
-          ['Network', 68],
-          ['CPU', 55],
-          ['CPU', 55],
-          ['Network', 68]
-        ]);
-
-        var options = {
-          width: 400, height: 120,
-          redFrom: 90, redTo: 100,
-          yellowFrom:75, yellowTo: 90,
-          minorTicks: 5
-        };
-
-        var chart = new google.visualization.Gauge(document.getElementById('guage'));
-        chart.draw(data, options);
-        setInterval(function() {
-          data.setValue(0, 1, 40 + Math.round(60 * Math.random()));
-          chart.draw(data, options);
-        }, 13000);
-        setInterval(function() {
-          data.setValue(1, 1, 40 + Math.round(60 * Math.random()));
-          chart.draw(data, options);
-        }, 5000);
-        setInterval(function() {
-          data.setValue(2, 1, 60 + Math.round(20 * Math.random()));
-          chart.draw(data, options);
-        }, 26000);
       }
     </script>
 </head>
@@ -186,7 +206,7 @@
        <div class="div1">
          <div class="article-metadata">
            <h3>Trending Notes</h3>
-        </div>  
+        </div>
            <br><br>
 
 
@@ -225,13 +245,33 @@
           </div>
           <div class="div4">
            <br><br><br><br>
-           <div id="piechart" style="width: 100%; height: 100%;"></div>
-           <br><br>
+           <p align="center">User vs User Similarity</p>
            <div id="sankey_basic" style="width: 100%; height: 100%;"></div>
            <br><br>
-           <div id="chart_div" style="width: 100%; height: 100%;"></div>
+           <p align="center">User vs No of Notes</p>
+           {% if current_user.firstname == "Sneha" %}
+           <div id="piecharts" style="width: 100%; height: 100%;"></div>
+           {% endif %}
+
+           {% if current_user.firstname == "Manoj" %}
+           <div id="piechartm" style="width: 100%; height: 100%;"></div>
+           {% endif %}
+
+           {% if current_user.firstname == "Charan" %}
+           
+           <div id="piechartc" style="width: 100%; height: 100%;"></div>
+           {% endif %}
+           {% if current_user.firstname == "Hitesh" %}
+           
+           <div id="piecharth" style="width: 100%; height: 100%;"></div>
+           {% endif %}
+           {% if current_user.firstname == "Raghu" %}
+           
+           <div id="piechartr" style="width: 100%; height: 100%;"></div>
+           {% endif %}
            <br><br>
-           <div id="guage" style="width: 100%; height: 100%;"></div>
+           <p align="center">User vs Topic Relevance</p>
+           <div id="chart_div" style="width: 100%; height: 100%;"></div>
           </div>
        </div>
     </section>
