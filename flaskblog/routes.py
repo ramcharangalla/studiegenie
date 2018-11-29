@@ -4,7 +4,24 @@ from flaskblog import app,db,bcrypt
 from flask_login import login_user,current_user,logout_user, login_required
 from flaskblog.models import User, Tag, Note, Interaction
 import datetime
+from flaskblog.recommendations import get_personal_recommendations,get_content_based_recommendations
+import numpy as np
 now = datetime.datetime.now()
+
+note_id = 'contentId'
+notes_userid = 'authorPersonId'
+content_col = 'text'
+interactions_userid = 'personId'
+
+
+class RecNote:
+    def __init__(self,id,content,author,title,date,author_name):
+        self.id = id
+        self.title = title
+        self.date_created = date
+        self.user_id = author
+        self.content = content
+        self.author_name = author_name
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -28,8 +45,16 @@ def index():
 
 @app.route("/home")
 def home():
-    notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    return render_template('home.html', notes = notes)
+    names = ['John','Gary','Robert','George','Stephen']
+    #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    user_id = -1479311724257856983
+    recs = []
+    rec_df = get_content_based_recommendations(-1479311724257856983,topn=10,verbose=True)
+    #return print(rec_df.head(2))
+    for index,row in rec_df.iterrows():
+        mynote = RecNote(row[note_id],row[content_col],row[notes_userid],row['title'],row['timestamp'],names[np.random.randint(0,5)])
+        recs.append(mynote)
+    return render_template('home.html', notes = recs)
 
 @app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
 @login_required

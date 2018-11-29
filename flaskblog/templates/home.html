@@ -13,18 +13,16 @@
     <article class="media content-section">
       <div class="media-body">
         <div class="article-metadata">
-          <a class="mr-2" href="{{ url_for('user_notes', user_id=note.author.id) }}">{{ note.author.firstname }}</a>&nbsp&nbsp
-          <small class="text-muted">{{ note.date_created.strftime('%Y-%m-%d') }}</small>
+          <a class="mr-2" href="www.google.com">{{ note.author_name }}</a>&nbsp&nbsp
+
         </div>
         <div class="article-metadata">
           <h2><a class="article-title" href="{{ url_for('note', note_id=note.id) }}">{{ note.title }}</a></h2><br>
           <p class="article-content">{{ note.content }}</p><br>
       </div>
-      {% for n in note.notetags %}
-        <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
-      {% endfor %}
+
       <div class="form-group">
-        <p class="article-content"> No of Likes: {{ note.likes }}</p>
+        
         <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
         <a  class="btn btn-outline-info btn-sm" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
         <a  class="btn btn-outline-info btn-sm" href="{{ url_for('follow', note_id=note.id) }}">Follow</a>
