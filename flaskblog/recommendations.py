@@ -207,6 +207,6 @@ def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
 
 if __name__ == '__main__':
 	user_id = -1479311724257856983
-	get_personal_recommendations(-1479311724257856983,topn=10,verbose=True)
-	#get_content_based_recommendations(user_id,topn=10,verbose=True)
+	#get_personal_recommendations(-1479311724257856983,topn=10,verbose=True)
+	get_content_based_recommendations(user_id,topn=10,verbose=True)
 	# virt virtual env
