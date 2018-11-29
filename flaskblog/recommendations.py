@@ -202,11 +202,19 @@ def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
 	print recommendations_df.head(10)
 
 
+def get_collaborative_recommendations(for_user_id):
+	print interactions_df.head(2)
+	users_items_pivot_matrix_df = interactions_df.pivot(index='personId', 
+                                                          columns='contentId', 
+                                                          values='eventStrength').fillna(0)
+	print users_items_pivot_matrix_df.head(10)
+
 
 
 
 if __name__ == '__main__':
 	user_id = -1479311724257856983
 	#get_personal_recommendations(-1479311724257856983,topn=10,verbose=True)
-	get_content_based_recommendations(user_id,topn=10,verbose=True)
+	#get_content_based_recommendations(user_id,topn=10,verbose=True)
+	get_collaborative_recommendations(user_id)
 	# virt virtual env
