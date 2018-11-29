@@ -5,6 +5,10 @@
 </div>
 <br>
 <br>
+<div align="left">
+  This is some text!
+</div>
+
 {% for note in notes %}
     <article class="media content-section">
       <div class="media-body">
@@ -27,7 +31,7 @@
         <br>
         <br>
         <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
-        <p><a class="btn btn-outline-primary btn-sm" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"> Comment </a></p>
+        <p><a class="btn btn-outline-primary btn-sm" href="{{ url_for('comment', note_id=note.id) }}" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"> Comment </a></p>
       </div>
     </div>
     </article>
