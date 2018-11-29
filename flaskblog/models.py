@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
 
 
     def __repr__(self):
-        return f"User('{self.firstname}', '{self.lastname}', '{self.email}')"
+        return 'User {0} {1}'.format(self.id,self.firstname)
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +26,7 @@ class Tag(db.Model):
     notetags = db.relationship('Note', secondary='notemapper', backref=db.backref('notetags', lazy='dynamic'))
 
     def __repr__(self):
-        return f"Post('{self.id}', '{self.name}')"
+        return "Post('{self.id}', '{self.name}')"
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,7 +36,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Note('{self.title}', '{self.date_created}')"
+        return "Note('{self.title}', '{self.date_created}')"
 
 tagmapper = db.Table('tagmapper',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),

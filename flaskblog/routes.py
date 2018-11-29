@@ -19,8 +19,7 @@ def index():
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
-        else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+        
     return render_template('index.html', title='Login', form=form)
 
 
@@ -48,7 +47,7 @@ def register():
             user.usertags.append(tagid)
             db.session.commit()
         db.session.commit()
-        flash(f'Account created for {form.firstname.data}!','success')
+        
         return redirect(url_for('index'))
     return render_template('register.html', title='Register', form=form)
 
@@ -98,7 +97,7 @@ def new_note():
             note.notetags.append(tagid)
             db.session.commit()
         db.session.commit()
-        flash('Note has been created!', 'success')
+        #flash('Note has been created!', 'success')
         return redirect(url_for('home'))
     return render_template('create_note.html', title='New Note', form=form, legend='New Note')
 
@@ -129,7 +128,7 @@ def update_note(note_id):
             notes.notetags.append(tagid)
             db.session.commit()
         db.session.commit()
-        flash('Your Note has been updated!', 'success')
+        #flash('Your Note has been updated!', 'success')
         return redirect(url_for('note', note_id=notes.id))
     elif request.method == 'GET':
         form.title.data = notes.title
@@ -154,7 +153,7 @@ def delete_note(note_id):
         notes.notetags.remove(tagid)
         db.session.commit()
     db.session.commit()
-    flash('The Note has been deleted!', 'success')
+    #flash('The Note has been deleted!', 'success')
     return redirect(url_for('home'))
 
 @app.route("/user/<int:user_id>")
