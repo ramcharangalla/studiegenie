@@ -10,6 +10,7 @@
 </div>
 
 {% for note in notes %}
+
     <article class="media content-section">
       <div class="media-body">
         <div class="article-metadata">
@@ -22,7 +23,7 @@
       </div>
 
       <div class="form-group">
-        
+
         <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
         <a  class="btn btn-outline-info btn-sm" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
         <a  class="btn btn-outline-info btn-sm" href="{{ url_for('follow', note_id=note.id) }}">Follow</a>
@@ -33,6 +34,7 @@
       </div>
     </div>
     </article>
+
 
 {% endfor %}
 
