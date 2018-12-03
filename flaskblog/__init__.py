@@ -19,6 +19,7 @@ app.interactions_df = None
 app.user_words_df = None
 app.cosine_sim = None
 from flaskblog import routes
-from flaskblog.routes import update_cache
+from flaskblog.routes import update_cache,add_notes_to_index
 update_cache()
+add_notes_to_index()
 

@@ -19,9 +19,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse.linalg import svds
 from sklearn.metrics.pairwise import linear_kernel
-
-
-
+from elasticsearch import Elasticsearch
+app.es = Elasticsearch('http://localhost:9200')
+app.index_name = 'notes'
 def smooth_user_preference(x):
     return math.log(1+x, 2)
 
@@ -36,6 +36,19 @@ note_id = 'contentId'
 notes_userid = 'authorPersonId'
 content_col = 'text'
 interactions_userid = 'personId'
+
+def add_notes_to_index():
+    check_index = None
+    try:
+        check_index = app.es.indices.get_alias(app.index_name)
+    except Exception as detail:
+        pass
+    if check_index is None:
+        notes = Note.query.all()
+        for note in notes:
+            add_to_index(app.index_name,note)
+    else:
+        print('Indexing done')
 
 def update_cache():
     app.notes_df = get_notes_df()
@@ -536,3 +549,37 @@ def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
     recommendations_df = content_based_recommender_model.recommend_items(for_user_id,items_to_ignore=get_items_interacted(for_user_id,app.interactions_full_indexed_df),topn=topn,verbose=verbose)
     #recommendations_df = content_based_recommender_model.recommend_items(for_user_id,items_to_ignore=[],topn=topn,verbose=verbose)
     return recommendations_df
+
+
+def add_to_index(index, note):
+    if not app.es:
+        return
+    payload = {}
+    payload['text'] = note.title + note.content
+    app.es.index(index=index, doc_type=index, id=note.id,
+                                    body=payload)
+
+def remove_from_index(index, model):
+    if not app.es:
+        return
+    app.es.delete(index=index, doc_type=index, id=model.id)
+
+
+def search(query,index):
+    result = query_index(index,query,1,10)
+    result_notes = []
+    for note in result['hits']['hits']:
+        note_id = note['_id']
+        actual_note = Note.query.filter_by(id=note_id).first()
+        result_notes.append(actual_note)
+    return result_notes
+
+
+
+def query_index(index, query, page, per_page):
+    if not app.es:
+        return [], 0
+    search = app.es.search(
+        index=index, doc_type=index,
+        body={'query': {'match': {'text':query}},'from': (page - 1) * per_page, 'size': per_page})
+    return search
