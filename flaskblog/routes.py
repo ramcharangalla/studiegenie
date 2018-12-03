@@ -547,7 +547,7 @@ def get_collab_filtering(for_user_id,topn=10):
     app.similar_users = ''
     this_user = ''
     name_set = set()
-    users = User.query.all()
+    users = User.query.filter_by(id=for_user_id).all()
     for user in users:
         if user.id != 6:
             idx = user_indices[user.id]
