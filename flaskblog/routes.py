@@ -18,6 +18,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse.linalg import svds
+from sklearn.metrics.pairwise import linear_kernel
+
 
 
 def smooth_user_preference(x):
@@ -34,31 +36,28 @@ note_id = 'contentId'
 notes_userid = 'authorPersonId'
 content_col = 'text'
 interactions_userid = 'personId'
-app.notes_df = get_notes_df()
-app.interactions_df = get_interactions_df()
-# print('NOTES')
-# print(app.notes_df)
-# print('app interactions')
-# print(app.interactions_df)
-app.interactions_df['eventStrength'] = app.interactions_df['eventType'].apply(lambda x: event_type_strength[x])
 
-app.users_interactions_count_df = app.interactions_df.groupby([interactions_userid, note_id]).size().groupby(interactions_userid).size()
-# print('app.users_interactions_count_df')
-# print(app.users_interactions_count_df)
+def update_cache():
+    app.notes_df = get_notes_df()
+    app.interactions_df,app.user_words_df  = get_interactions_df()
+    print('user vs words shape')
+    print(app.user_words_df.head(1))
+    app.interactions_df['eventStrength'] = app.interactions_df['eventType'].apply(lambda x: event_type_strength[x])
 
-app.users_with_enough_interactions_df = app.users_interactions_count_df[app.users_interactions_count_df >= 0].reset_index()[[interactions_userid]]
+    app.users_interactions_count_df = app.interactions_df.groupby([interactions_userid, note_id]).size().groupby(interactions_userid).size()
 
-app.interactions_from_selected_users_df = app.interactions_df.merge(app.users_with_enough_interactions_df, 
-               how = 'right',
-               left_on = interactions_userid,
-               right_on = interactions_userid)
+    app.users_with_enough_interactions_df = app.users_interactions_count_df[app.users_interactions_count_df >= 0].reset_index()[[interactions_userid]]
+
+    app.interactions_from_selected_users_df = app.interactions_df.merge(app.users_with_enough_interactions_df, 
+                   how = 'right',
+                   left_on = interactions_userid,
+                   right_on = interactions_userid)
 
 
-app.interactions_full_df = app.interactions_from_selected_users_df \
-                    .groupby([interactions_userid, note_id])['eventStrength'].sum() \
-                    .apply(smooth_user_preference).reset_index()
-app.interactions_full_indexed_df = app.interactions_full_df.set_index(interactions_userid)
-# print(app.interactions_full_indexed_df)
+    app.interactions_full_df = app.interactions_from_selected_users_df \
+                        .groupby([interactions_userid, note_id])['eventStrength'].sum() \
+                        .apply(smooth_user_preference).reset_index()
+    app.interactions_full_indexed_df = app.interactions_full_df.set_index(interactions_userid)
 
 def get_items_interacted(userid, interactions_df):
     ret = []
@@ -91,39 +90,45 @@ def index():
     return render_template('index.html', title='Login', form=form)
 
 
-
 @app.route("/home")
 def home():
-    trending_notes = get_personal_recommendations(current_user.id,topn=1000)
-    content_notes = get_content_based_recommendations(current_user.id,topn=7)
+    trending_notes = get_personal_recommendations(current_user.id,topn=20)
+    content_notes = get_content_based_recommendations(current_user.id,topn=20)
+    print('Content based IDS ')
     ids = content_notes['contentId']
+    print(ids)
     trending_ids = trending_notes['contentId']
-    notes_c =  Note.query.filter(Note.id.in_(ids)).all()
-    notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
+    print('Trending based IDS ')
+    print(trending_ids)
+    notes_c = []
+    notes_t = []
+    notes_collab = []
+    for id_ in ids:
+        notes_c.append(Note.query.filter_by(id = id_).first())
+    for id_ in trending_ids:
+        notes_t.append(Note.query.filter_by(id = id_).first())
     # else:
     #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c )
+    collab_ids = get_collab_filtering(current_user.id,topn=10)
+    for id_ in collab_ids:
+        notes_collab.append(Note.query.filter_by(id = id_).first())
+
+    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c,collab_notes =notes_collab )
 
 @app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
 @login_required
 def like(note_id):
     notes = Note.query.get_or_404(note_id)
-    like = session.get('likes')
-    if like != 0:
-        notes.likes = notes.likes - 1
-        session['likes'] = 0
-        db.session.commit()
-    else:
-        notes.likes = notes.likes + 1
-        session['likes'] = 1
-        db.session.commit()
+    notes.likes += 1
+    db.session.commit()
+
     users = User.query.filter_by(id=current_user.id).first_or_404()
     interaction = Interaction(date = now, event='like', user_id = users.id, note_id = note_id)
     db.session.add(interaction)
     db.session.commit()
-    notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    app.interactions_df = get_interactions_df()
-    return render_template('home.html', notes = notes1)
+    update_cache()
+    notes = Note.query.get_or_404(note_id)
+    return render_template('note.html', note=notes)
 
 @app.route("/note/<int:note_id>/bookmark", methods=['GET', 'POST'])
 @login_required
@@ -135,7 +140,14 @@ def bookmark(note_id):
     db.session.commit()
     notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     app.interactions_df = get_interactions_df()
-    return render_template('home.html', notes = notes1)
+    trending_notes = get_personal_recommendations(current_user.id,topn=1000)
+    content_notes = get_content_based_recommendations(current_user.id,topn=7)
+    ids = content_notes['contentId']
+    trending_ids = trending_notes['contentId']
+    notes_c =  Note.query.filter(Note.id.in_(ids)).all()
+    notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
+    #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html',notes_trending = notes_t, recommendations_notes = notes_c )
 
 @app.route("/note/<int:note_id>/follow", methods=['GET', 'POST'])
 @login_required
@@ -147,7 +159,14 @@ def follow(note_id):
     db.session.commit()
     notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     app.interactions_df = get_interactions_df()
-    return render_template('home.html', notes = notes1)
+    trending_notes = get_personal_recommendations(current_user.id,topn=1000)
+    content_notes = get_content_based_recommendations(current_user.id,topn=7)
+    ids = content_notes['contentId']
+    trending_ids = trending_notes['contentId']
+    notes_c =  Note.query.filter(Note.id.in_(ids)).all()
+    notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
+    #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c)
 
 @app.route("/note/<int:note_id>/comment", methods=['GET', 'POST'])
 @login_required
@@ -158,7 +177,14 @@ def comment(note_id):
     db.session.add(interaction)
     db.session.commit()
     notes1 = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    return render_template('home.html', notes = notes1)
+    trending_notes = get_personal_recommendations(current_user.id,topn=1000)
+    content_notes = get_content_based_recommendations(current_user.id,topn=7)
+    ids = content_notes['contentId']
+    trending_ids = trending_notes['contentId']
+    notes_c =  Note.query.filter(Note.id.in_(ids)).all()
+    notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
+    #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c )
 
 
 
@@ -230,13 +256,21 @@ def new_note():
             note.notetags.append(tagid)
             db.session.commit()
         db.session.commit()
-        flash('Note has been created!', 'success')
+        interaction = Interaction(date = now, event='comment', user_id = current_user.id, note_id = note.id)
+        db.session.add(interaction)
+        db.session.commit()
+        update_cache()
         return redirect(url_for('home'))
     return render_template('create_note.html', title='New Note', form=form, legend='New Note')
 
 @app.route("/note/<int:note_id>")
 def note(note_id):
     notes = Note.query.get_or_404(note_id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    interaction = Interaction(date = now, event='view', user_id = users.id, note_id = note_id)
+    db.session.add(interaction)
+    db.session.commit()
+    update_cache()
     return render_template('note.html', note=notes)
 
 @app.route("/note/<int:note_id>/update", methods=['GET', 'POST'])
@@ -440,17 +474,48 @@ class ContentBasedRecommender:
 
 
 def get_personal_recommendations(for_user_id,topn=10,verbose=False):
-    # print('get_personal_recommendations')
-    # print(app.interactions_full_indexed_df)
-    # print('get_personal_recommendations')
     item_popularity_df = app.interactions_full_indexed_df.groupby(note_id)['eventStrength'].sum().sort_values(ascending=False).reset_index()
-    # print(item_popularity_df.head(10))
-
     popularity_model = PopularityRecommender(item_popularity_df, app.notes_df)
     recommendations_df = popularity_model.recommend_items(for_user_id,items_to_ignore=get_items_interacted(for_user_id,app.interactions_full_indexed_df),topn=topn,verbose=verbose)
-    # print('Recommended items: Trending notes')
-    # print(recommendations_df.head(10))
+    #recommendations_df = popularity_model.recommend_items(for_user_id,items_to_ignore=[],topn=topn,verbose=verbose)
     return recommendations_df
+
+
+def get_collab_filtering(for_user_id,topn=10):
+    tfidf = TfidfVectorizer()
+    df = app.user_words_df
+    tfidf_matrix = tfidf.fit_transform(df['text'])
+    print('Users vs Features(Words)')
+    print(tfidf_matrix.shape)
+    user_indices = pd.Series(df.index, index=df['user_id']).drop_duplicates()
+    indices_user = pd.Series(df['user_id'], index=df.index).drop_duplicates()
+    app.cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+    user = 3
+    idx = user_indices[for_user_id]
+    print('Cosine sim')
+    print(app.cosine_sim[idx])
+
+    sim_scores = list(enumerate(app.cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:11]
+    print('Similar users')
+    req_ids = set()
+    already_interacted = get_items_interacted(for_user_id,app.interactions_full_indexed_df)
+    for i in sim_scores:
+        sim_user = indices_user[i[0]]
+        this_user_notes = get_items_interacted(sim_user,app.interactions_full_indexed_df)
+        for note in this_user_notes:
+            if note not in already_interacted:
+                req_ids.add(note)
+    
+    rec_ids  = list(req_ids)
+    print('Recommended Nptes Collab')
+    print(rec_ids)
+    return rec_ids
+
+
+
+
 
 
 def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
@@ -464,13 +529,10 @@ def get_content_based_recommendations(for_user_id,topn=10,verbose=False):
     item_ids = app.notes_df[note_id].tolist()
     tfidf_matrix = vectorizer.fit_transform(app.notes_df[content_col])
     tfidf_feature_names = vectorizer.get_feature_names()
-    #print tfidf_matrix
+    
     profile_builer = ProfileBuilder(tfidf_matrix,item_ids)
     user_profiles = profile_builer.build_users_profiles()
-    # print('User profiles')
-    # print(user_profiles)
     content_based_recommender_model = ContentBasedRecommender(item_ids, app.notes_df,user_profiles,tfidf_matrix)
     recommendations_df = content_based_recommender_model.recommend_items(for_user_id,items_to_ignore=get_items_interacted(for_user_id,app.interactions_full_indexed_df),topn=topn,verbose=verbose)
-    # print('recommened notes')
-    # print(recommendations_df)
+    #recommendations_df = content_based_recommender_model.recommend_items(for_user_id,items_to_ignore=[],topn=topn,verbose=verbose)
     return recommendations_df

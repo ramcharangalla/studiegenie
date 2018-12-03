@@ -51,7 +51,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Note('{self.title}', '{self.date_created}','{self.mode}','{self.likes}')"
+        return f"Note('{self.id}','{self.title}', '{self.date_created}','{self.mode}','{self.likes}')"
 
 
 tagmapper = db.Table('tagmapper',
@@ -79,11 +79,27 @@ def get_notes_df():
 def get_interactions_df():
     interactions = Interaction.query.all()
     inters = []
+    user_words = {}
     for i in interactions:
         d = {}
         d['contentId'] = i.note_id
         d['personId'] = i.user_id
         d['eventType'] = i.event
         inters.append(d)
+        thisnote = Note.query.filter_by(id=i.note_id).first()
+
+        if i.user_id in user_words:
+            curr_words = user_words[i.user_id]
+            curr_words = curr_words + thisnote.title + thisnote.content 
+            user_words[i.user_id] = curr_words
+        else:
+            user_words[i.user_id] = thisnote.title + thisnote.content 
+    user_words_arr = []
+    for key,value in user_words.items():
+        d = {}
+        d['user_id'] = key
+        d['text'] = value
+        user_words_arr.append(d)
+    user_vs_wordsdf = pd.DataFrame(user_words_arr)
     interactions_df = pd.DataFrame(inters)
-    return interactions_df
+    return interactions_df,user_vs_wordsdf

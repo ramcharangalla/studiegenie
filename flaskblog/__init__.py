@@ -16,5 +16,9 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 app.notes_df = None
 app.interactions_df = None
+app.user_words_df = None
+app.cosine_sim = None
 from flaskblog import routes
+from flaskblog.routes import update_cache
+update_cache()
 
