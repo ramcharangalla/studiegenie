@@ -1,13 +1,16 @@
 {% extends "layout0.html" %}
 {% block content %}
 <div class="article-metadata">
+  {% if title == 'My Notes' %}
   <h2>Account Information</h2>
+  {% endif %}
 </div>
 <br>
+{% if title == 'My Notes' %}
 <div class="plugcard">
-    <h5>First Name: {{ current_user.firstname }} </h5>
-    <h5>Last Name: {{ current_user.lastname }} </h5>
-    <p class="text-secondary"> Email: {{ current_user.email }}</p>
+    <h5>First Name: {{ user.firstname }} </h5>
+    <h5>Last Name: {{ user.lastname }} </h5>
+    <p class="text-secondary"> Email: {{ user.email }}</p>
     <p class="text-secondary"> No of Notes: {{ count }}</p>
     <p class="text-secondary"> Intrested Topics:
     {% for n in user.usertags %}
@@ -15,8 +18,9 @@
     {% endfor %}
     </p>
 </div>
+{% endif %}
 <br>
-<h2>My Notes</h2>
+<h2>{{title}}</h2>
 <br>
 {% for note in notes %}
     <article class="media content-section">

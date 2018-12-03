@@ -162,6 +162,17 @@ def bookmark(note_id):
     #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
     return render_template('home.html',notes_trending = notes_t, recommendations_notes = notes_c )
 
+@app.route("/search", methods=['GET', 'POST'])
+@login_required
+def search():
+    term = request.args.get('srch-term')
+    notes = my_search(term,app.index_name)
+    return  render_template('account.html', notes = notes, count = len(notes), user = None, title  = 'Search results')
+
+
+
+
+
 @app.route("/note/<int:note_id>/follow", methods=['GET', 'POST'])
 @login_required
 def follow(note_id):
@@ -252,7 +263,7 @@ def account():
     user = User.query.filter_by(id=current_user.id).first_or_404()
     notes = Note.query.order_by(Note.date_created.desc()).filter_by(user_id = current_user.id)
     notecount = Note.query.filter_by(user_id = current_user.id).count()
-    return  render_template('account.html', notes = notes, count = notecount, user = user)
+    return  render_template('account.html', notes = notes, count = notecount, user = user,title='My Notes')
 
 @app.route("/note/new", methods=['GET', 'POST'])
 @login_required
@@ -565,7 +576,7 @@ def remove_from_index(index, model):
     app.es.delete(index=index, doc_type=index, id=model.id)
 
 
-def search(query,index):
+def my_search(query,index):
     result = query_index(index,query,1,10)
     result_notes = []
     for note in result['hits']['hits']:
