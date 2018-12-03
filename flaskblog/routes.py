@@ -75,9 +75,9 @@ def update_cache():
 def get_items_interacted(userid, interactions_df):
     ret = []
     try:
-        print('INTERACTED_ITEMS')
+        # print('INTERACTED_ITEMS')
         interacted_items = interactions_df.loc[userid][note_id]
-        print(interacted_items)
+        # print(interacted_items)
     except:
         print('EXCEPTION')
         pass
@@ -107,12 +107,12 @@ def index():
 def home():
     trending_notes = get_personal_recommendations(current_user.id,topn=20)
     content_notes = get_content_based_recommendations(current_user.id,topn=20)
-    print('Content based IDS ')
+    # print('Content based IDS ')
     ids = content_notes['contentId']
-    print(ids)
+    # print(ids)
     trending_ids = trending_notes['contentId']
-    print('Trending based IDS ')
-    print(trending_ids)
+    # print('Trending based IDS ')
+    # print(trending_ids)
     notes_c = []
     notes_t = []
     notes_collab = []
@@ -364,6 +364,10 @@ def tags(tag_id):
     return render_template('tags.html', tags=tags, tagcount = tagcount)
 
 
+@app.route('/getUserSimilarity',methods=['GET'])
+def getUserSimilarity():
+    return app.similar_users
+
 @app.errorhandler(404)
 def error_404(error):
     return render_template('404.html'), 404
@@ -377,6 +381,8 @@ def error_403(error):
 @app.errorhandler(500)
 def error_500(error):
     return render_template('500.html'), 500
+
+
 
 
 
@@ -508,21 +514,22 @@ def get_personal_recommendations(for_user_id,topn=10,verbose=False):
 def get_collab_filtering(for_user_id,topn=10):
     tfidf = TfidfVectorizer()
     df = app.user_words_df
+    print(df)
     tfidf_matrix = tfidf.fit_transform(df['text'])
-    print('Users vs Features(Words)')
-    print(tfidf_matrix.shape)
+    # print('Users vs Features(Words)')
+    # print(tfidf_matrix.shape)
     user_indices = pd.Series(df.index, index=df['user_id']).drop_duplicates()
     indices_user = pd.Series(df['user_id'], index=df.index).drop_duplicates()
     app.cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
     user = 3
     idx = user_indices[for_user_id]
-    print('Cosine sim')
-    print(app.cosine_sim[idx])
+    # print('Cosine sim')
+    # print(app.cosine_sim[idx])
 
     sim_scores = list(enumerate(app.cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
     sim_scores = sim_scores[1:11]
-    print('Similar users')
+    # print('Similar users')
     req_ids = set()
     already_interacted = get_items_interacted(for_user_id,app.interactions_full_indexed_df)
     for i in sim_scores:
@@ -533,8 +540,32 @@ def get_collab_filtering(for_user_id,topn=10):
                 req_ids.add(note)
     
     rec_ids  = list(req_ids)
-    print('Recommended Nptes Collab')
-    print(rec_ids)
+    # print('Recommended Nptes Collab')
+    # print(rec_ids)
+
+    print('Forming string')
+    app.similar_users = ''
+    this_user = ''
+    name_set = set()
+    users = User.query.all()
+    for user in users:
+        if user.id != 6:
+            idx = user_indices[user.id]
+            sim_scores = list(enumerate(app.cosine_sim[idx]))
+            sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+            sim_scores = sim_scores[1:5]
+            for i in sim_scores:
+
+                sim_user = indices_user[i[0]]
+                sim_user_info = User.query.filter_by(id=int(sim_user)).first()
+                if sim_user_info is not None:
+                    temp_str = user.firstname + ',' + sim_user_info.firstname
+                    temp_str2 = sim_user_info.firstname + ',' + user.firstname
+                    if temp_str not in name_set and temp_str2 not in name_set:
+                        this_user = this_user + temp_str + ',' + str(int(i[1] * 100)) + ';'
+                        name_set.add(temp_str)
+                        name_set.add(temp_str2)
+    app.similar_users = this_user
     return rec_ids
 
 

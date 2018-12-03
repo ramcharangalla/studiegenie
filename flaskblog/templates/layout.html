@@ -156,21 +156,52 @@
       google.charts.setOnLoadCallback(drawChart);
       function drawChart()
       {
+        var jax = new XMLHttpRequest();
+        jax.onreadystatechange = function() 
+        {
+          if (jax.readyState == XMLHttpRequest.DONE) 
+          {
+        res_data = jax.responseText;
         var data = new google.visualization.DataTable();
-        data.addColumn('string', 'From');
-        data.addColumn('string', 'To');
-        data.addColumn('number', 'Weight');
-        data.addRows([
-          [ 'Manoj', 'Charan', 4 ],
-          [ 'Manoj', 'Hitesh', 7 ],
-          [ 'Manoj', 'Raghu', 5 ],
-          [ 'Sneha', 'Charan', 9 ],
-          [ 'Sneha', 'Hitesh', 4 ],
-          [ 'Sneha', 'Raghu', 3 ]
-        ]);
+          data.addColumn('string', 'From');
+          data.addColumn('string', 'To');
+          data.addColumn('number', 'Weight');
+          var my_addrows = []
+        var mappings = res_data.split(';');
+        for (var i = 0; i < mappings.length; i++) {
+            var temp = mappings[i].split(',');
+            var temp2 = []
+            if (typeof temp[2] != 'undefined') 
+            {
+              temp2.push(temp[0]);
+              temp2.push(temp[1]);
+              temp2.push(Number(temp[2]));
+              console.log(temp2);
+            }
+            if(temp2.length == 3){
+            my_addrows.push(temp2);
+            } 
+        }
+          
+          // data.addRows([
+          //   [ 'Manoj', 'Charan', 4 ],
+          //   [ 'Manoj', 'Hitesh', 7 ],
+          //   [ 'Manoj', 'Raghu', 5 ],
+          //   [ 'Sneha', 'Charan', 9 ],
+          //   [ 'Sneha', 'Hitesh', 4 ],
+          //   [ 'Sneha', 'Raghu', 3 ]
+          // ]);
+          console.log(my_addrows);
+          data.addRows(my_addrows);
 
-        var chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
-        chart.draw(data);
+
+          var chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
+          chart.draw(data);
+
+          }
+        }
+        jax.open("GET","http://localhost:5000/getUserSimilarity");
+        jax.send();
       }
     </script>
     <script type="text/javascript">
@@ -178,6 +209,11 @@
       google.charts.setOnLoadCallback(drawVisualization);
       function drawVisualization()
       {
+          var jax = new XMLHttpRequest();
+          jax.onreadystatechange = function() {
+        if (jax.readyState == XMLHttpRequest.DONE) {
+      data = jax.responseText;
+
         // Some raw data (not necessarily accurate)
         var data = google.visualization.arrayToDataTable([
           ['User', 'Inheritence', 'If case', 'React', 'Switch case', 'Loops', 'Sorting'],
@@ -196,6 +232,10 @@
         };
         var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
         chart.draw(data, options);
+        }
+        }
+    jax.open("GET","http://localhost:5000/getUserSimilarity");
+        jax.send();
       }
     </script>
 </head>
