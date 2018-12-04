@@ -21,8 +21,8 @@
           <a class="mr-2" href="{{ url_for('tags', tag_id=i.id) }}">{{ i.name }}</a>
         {% endfor %}
         <div class="form-group">
-          <p class="article-content"> No of Likes: {{ n.likes }}</p>
-          <a  class="btn btn-primary"  href="{{ url_for('like', note_id=n.id) }}">Like</a>&nbsp&nbsp
+          <p class="article-content"> Claps: {{ n.likes }}</p>
+          <a  class="btn btn-primary"  href="{{ url_for('like', note_id=n.id) }}">Clap</a>&nbsp&nbsp
           <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=n.id) }}">Bookmark</a>&nbsp&nbsp
           
         </div>

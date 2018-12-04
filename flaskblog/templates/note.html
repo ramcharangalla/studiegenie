@@ -14,8 +14,8 @@
       {% for n in note.notetags %}
       <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
       {% endfor %}
-      <p class="article-content"> No of Likes: {{ note.likes }}</p><br>
-      <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
+      <p class="article-content"> Claps: {{ note.likes }}</p><br>
+      <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Clap</a>&nbsp&nbsp
       <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
       <br>      <br>
       <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
