@@ -150,11 +150,19 @@ def like(note_id):
     notes = Note.query.get_or_404(note_id)
     return render_template('note.html', note=notes)
 
+
 @app.route("/note/<int:note_id>/bookmark", methods=['GET', 'POST'])
 @login_required
 def bookmark(note_id):
     notes = Note.query.get_or_404(note_id)
     users = User.query.filter_by(id=current_user.id).first_or_404()
+    query = Interaction.query.filter(Interaction.user_id.like(users.id), Interaction.note_id.like(note_id))
+    if query:
+        print (query)
+    else:
+        interaction = Interaction(date = now, event='bookmark', user_id = users.id, note_id = note_id)
+        db.session.add(interaction)
+        db.session.commit()
     interaction = Interaction(date = now, event='bookmark', user_id = users.id, note_id = note_id)
     db.session.add(interaction)
     db.session.commit()
@@ -264,13 +272,21 @@ def logout():
     return redirect(url_for('index'))
 
 
+
 @app.route("/account")
 @login_required
 def account():
     user = User.query.filter_by(id=current_user.id).first_or_404()
     notes = Note.query.order_by(Note.date_created.desc()).filter_by(user_id = current_user.id)
     notecount = Note.query.filter_by(user_id = current_user.id).count()
-    return  render_template('account.html', notes = notes, count = notecount, user = user,title='My Notes')
+    book = Interaction.query.filter(Interaction.user_id.like(user.id), Interaction.event.like('bookmark'))
+    arr = []
+    for n in book:
+        arr.append(n.note_id)
+    book1 = Note.query.filter(Note.id.in_(arr)).all()
+
+    return  render_template('account.html', notes = notes, count = notecount, user = user,title='My Notes', bookmark = book1)
+
 
 @app.route("/note/new", methods=['GET', 'POST'])
 @login_required
