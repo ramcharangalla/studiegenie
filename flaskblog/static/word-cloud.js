@@ -17,9 +17,13 @@ var layout = d3.layout.cloud()
         })
         .on("end", draw);
 
+// var svg = d3.select("#vis").append("svg")
+//         .attr("width", w)
+//         .attr("height", h);
+
 var svg = d3.select("#vis").append("svg")
-        .attr("width", w)
-        .attr("height", h);
+       .attr("width", w)
+       .attr("height", h);
 
 var vis = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")");
 
@@ -35,8 +39,8 @@ else if(window.addEventListener) {
 }
 
 function draw(data, bounds) {
-    var w = 900,
-        h = 450;
+    var w = 1000,
+        h = 500;
 
     svg.attr("width", w).attr("height", h);
 
