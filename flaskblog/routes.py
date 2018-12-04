@@ -108,7 +108,10 @@ def index():
 
 @app.route("/home")
 def home():
-    #write_word_cloud_data()
+    inters = Interaction.query.filter_by(user_id=current_user.id).all()
+    if len(inters) == 0:
+        notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+        return render_template('home.html', notes_trending = notes, recommendations_notes = notes,collab_notes =[] )
     trending_notes = get_personal_recommendations(current_user.id,topn=20)
     content_notes = get_content_based_recommendations(current_user.id,topn=20)
     # print('Content based IDS ')
