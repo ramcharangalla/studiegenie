@@ -1,0 +1,32 @@
+{% extends "layout0.html" %}
+{% block content %}
+<div class="plugcard">
+    <h1>  {{ cheats.title }} </h1>
+    <h5> By {{ user.firstname }} {{ user.lastname }} </h5>
+    <p class="text-secondary"> {{ cheats.date_created.strftime('%Y-%m-%d')  }}</p>
+    <p class="text-secondary"> Email: {{ user.email }}</p>
+    <p class="text-secondary"> Intrested Topics:
+    {% for n in user.usertags %}
+      <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a> &nbsp&nbsp
+    {% endfor %}
+    </p>
+    {% for note in cheats.cheatnotes %}
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <small class="text-muted">{{ note.date_created.strftime('%Y-%m-%d') }}</small>
+            </div>
+            <div class="article-metadata">
+              <h2><a class="article-title" href="{{ url_for('note', note_id=note.id) }}">{{ note.title }}</a></h2><br>
+              <p class="article-content">{{ note.content }}</p><br>
+          </div>
+          {% for n in note.notetags %}
+            <a class="mr-2" href="{{ url_for('tags', tag_id=n.id) }}">{{ n.name }}</a>
+          {% endfor %}
+          </div>
+        </article>
+    {% endfor %}
+</div>
+
+
+{% endblock content %}

@@ -24,7 +24,17 @@
         <p class="article-content"> No of Likes: {{ note.likes }}</p>
         <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
         <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
+        <div class="btn-group dropright">
+          <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Add to Cheat Sheet </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" data-toggle="modal" data-target="#cheatModal" href="#">Create a New CheatSheet </a>
+            {% for n in cheats %}
+            <a class="dropdown-item" href="{{ url_for('addcheatsheet', id=n.id, note_id=note.id ) }}"> {{ n.title }} </a>
+            {% endfor %}
+          </div>
+        </div>
       </div>
+
     </div>
     </article>
 
@@ -51,11 +61,36 @@
         <p class="article-content"> No of Likes: {{ note.likes }}</p>
         <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
         <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
-        
+        <div class="btn-group dropright">
+          <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Add to Cheat Sheet </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" data-toggle="modal" data-target="#cheatModal" href="#">Create a New CheatSheet </a>
+            {% for n in cheats %}
+            <a class="dropdown-item" href="{{ url_for('addcheatsheet', id=n.id, note_id=note.id ) }}"> {{ n.title }} </a>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
     </article>
 
 {% endfor %}
+<!-- Modal -->
+<div class="modal fade" id="cheatModal" tabindex="-1" role="dialog" aria-labelledby="cheatModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Create a CheatSheet ?</h5>
+      </div>
+      <div class="modal-header">
+        <form method="POST" action="{{ url_for('newcheatsheet') }}">
+          <p>Title</p>
+          <input type="text" name="title">
+          <input class="btn btn-primary" type="submit" value="Create">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock content %}

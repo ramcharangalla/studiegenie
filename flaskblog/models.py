@@ -41,6 +41,16 @@ class Interaction(db.Model):
     def __repr__(self):
         return f"Interaction('{self.event}', '{self.user_id}', '{self.note_id}',, '{self.date}')"
 
+class Cheatsheet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    cheatnotes = db.relationship('Note', secondary='cheatmapper', backref=db.backref('cheatnotes', lazy='dynamic'))
+
+    def __repr__(self):
+        return f"Cheatsheet('{self.id}', '{self.user_id}', '{self.title}', '{self.date_created}')"
+
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -53,6 +63,9 @@ class Note(db.Model):
     def __repr__(self):
         return f"Note('{self.id}','{self.title}', '{self.date_created}','{self.mode}','{self.likes}')"
 
+cheatmapper = db.Table('cheatmapper',
+    db.Column('note_id', db.Integer, db.ForeignKey('note.id')),
+    db.Column('cheat_id', db.Integer, db.ForeignKey('cheatsheet.id')))
 
 tagmapper = db.Table('tagmapper',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),

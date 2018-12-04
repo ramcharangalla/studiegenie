@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request, abo
 from flaskblog.forms import RegistrationForm, LoginForm, NoteForm, NoteFormUpdate, LikeForm
 from flaskblog import app,db,bcrypt
 from flask_login import login_user,current_user,logout_user, login_required
-from flaskblog.models import User, Tag, Note, Interaction, get_notes_df, get_interactions_df
+from flaskblog.models import User, Tag, Note, Interaction, get_notes_df, get_interactions_df, Cheatsheet
 import datetime
 now = datetime.datetime.now()
 import math
@@ -132,8 +132,8 @@ def home():
     collab_ids = get_collab_filtering(current_user.id,topn=10)
     for id_ in collab_ids:
         notes_collab.append(Note.query.filter_by(id = id_).first())
-
-    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c,collab_notes =notes_collab )
+    cheatnotes = Cheatsheet.query.all()
+    return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c,collab_notes =notes_collab,cheats=cheatnotes )
 
 @app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
 @login_required
@@ -284,8 +284,8 @@ def account():
     for n in book:
         arr.append(n.note_id)
     book1 = Note.query.filter(Note.id.in_(arr)).all()
-
-    return  render_template('account.html', notes = notes, count = notecount, user = user,title='My Notes', bookmark = book1)
+    cheat = Cheatsheet.query.filter_by(user_id=current_user.id).all()
+    return  render_template('account.html', notes = notes, count = notecount, user = user,title='My Notes', bookmark = book1,cheats=cheat)
 
 
 @app.route("/note/new", methods=['GET', 'POST'])
@@ -725,3 +725,30 @@ def query_index(index, query, page, per_page):
         index=index, doc_type=index,
         body={'query': {'match': {'text':query}},'from': (page - 1) * per_page, 'size': per_page})
     return search
+
+
+
+# cheat sheets
+@app.route("/newcheatsheet", methods=['GET', 'POST'])
+def newcheatsheet():
+    title = request.form['title']
+    cheat = Cheatsheet(title=title, user_id=current_user.id, date_created= now)
+    print (cheat)
+    db.session.add(cheat)
+    db.session.commit()
+    print ("done")
+    return redirect(url_for('home'))
+
+@app.route("/addcheatsheet/<int:id>,<int:note_id>", methods=['GET', 'POST'])
+def addcheatsheet(id,note_id):
+    notes = Note.query.get_or_404(note_id)
+    cheat=Cheatsheet.query.filter_by(id=id).first()
+    notes.cheatnotes.append(cheat)
+    db.session.commit()
+    return redirect(url_for('home'))
+
+@app.route("/cheatsheet/<int:id>")
+def cheatsheet(id):
+    cheats = Cheatsheet.query.get_or_404(id)
+    users = User.query.filter_by(id=current_user.id).first_or_404()
+    return render_template('cheatsheet.html', cheats=cheats, user=users)

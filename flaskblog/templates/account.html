@@ -22,6 +22,11 @@
       <a class="mr-2" href="{{ url_for('note', note_id=n.id) }}">{{ n.title }}</a> &nbsp&nbsp
     {% endfor %}
     </p>
+    <p class="text-secondary"> My CheatSheets:
+    {% for n in cheats %}
+      <a class="mr-2" href="{{ url_for('cheatsheet', id=n.id) }}">{{ n.title }}</a> &nbsp&nbsp
+    {% endfor %}
+    </p>
 </div>
 {% endif %}
 <br>
