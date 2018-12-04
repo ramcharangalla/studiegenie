@@ -13,6 +13,7 @@ import scipy
 import math
 import random
 import sklearn
+import nltk
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -20,6 +21,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse.linalg import svds
 from sklearn.metrics.pairwise import linear_kernel
 from elasticsearch import Elasticsearch
+import json
+import os
 app.es = Elasticsearch('http://localhost:9200')
 app.index_name = 'notes'
 def smooth_user_preference(x):
@@ -105,6 +108,7 @@ def index():
 
 @app.route("/home")
 def home():
+    #write_word_cloud_data()
     trending_notes = get_personal_recommendations(current_user.id,topn=20)
     content_notes = get_content_based_recommendations(current_user.id,topn=20)
     # print('Content based IDS ')
@@ -283,7 +287,9 @@ def new_note():
         interaction = Interaction(date = now, event='comment', user_id = current_user.id, note_id = note.id)
         db.session.add(interaction)
         db.session.commit()
+        add_to_index(app.index_name,note)
         update_cache()
+        write_word_cloud_data()
         return redirect(url_for('home'))
     return render_template('create_note.html', title='New Note', form=form, legend='New Note')
 
@@ -368,6 +374,12 @@ def tags(tag_id):
 def getUserSimilarity():
     return app.similar_users
 
+@app.route('/getWordCount',methods=['GET'])
+def getWordCount():
+    json_data = write_word_cloud_data()
+    return json_data
+
+
 @app.errorhandler(404)
 def error_404(error):
     return render_template('404.html'), 404
@@ -385,7 +397,34 @@ def error_500(error):
 
 
 
+def write_word_cloud_data():
+    notes = Note.query.all()
+    text = ''
+    for note in notes:
+        text = text + note.title
+        text = text + note.content
+    words = nltk.word_tokenize(text)
 
+    words = [word for word in words if len(word) > 1]
+    words = [word.lower() for word in words]
+    words = [word for word in words if not word.isnumeric()]
+    words = [word for word in words if word not in stopwords.words('english')]
+    fdist = nltk.FreqDist(words)
+    
+    json_arr = []
+    for word, frequency in fdist.most_common(200):
+        data = {}
+        data['key'] = word
+        data['value'] = frequency
+        json_arr.append(data)
+    json_data  = json.dumps(json_arr)
+    prep = 'var tags = ' + json_data + ';'
+    curr_d = os.getcwd()
+    tags_file = os.path.join(curr_d,'flaskblog/static/tags.js')
+    file = open(tags_file, 'w')
+    file.write(prep)
+    file.close()
+    return json_data
 
 
 class ProfileBuilder:
