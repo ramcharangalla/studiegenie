@@ -65,7 +65,7 @@
       background-color: #fafafa;
       position: absolute;
       right: 0px;
-      width: 35%;
+      width: 25%;
       height: 100%
     }
     .col-md-8 {
@@ -81,80 +81,41 @@
       google.charts.setOnLoadCallback(drawChart);
       function drawChart()
       {
+        var jax = new XMLHttpRequest();
+        jax.onreadystatechange = function()
+        {
+          if (jax.readyState == XMLHttpRequest.DONE)
+          {
+            res_data = jax.responseText;
+            console.log(res_data);
+            var my_addrows = []
+            my_addrows.push(['Topic', 'Count'])
+            var mappings = res_data.split(';');
+            var data = new google.visualization.DataTable();
+              data.addColumn('string', 'Topic');
+              data.addColumn('number', 'Count');
+              for (var i = 0; i < mappings.length; i++)
+              {
+                  // console.log(mappings[i])
+                  var temp = mappings[i].split(',');
+                  var temp2 = []
 
-        var Sneha = google.visualization.arrayToDataTable([
-          ['Topic', 'Notes'],
-          ['Inheritance',     9],
-          ['Loops',      5],
-          ['If',  8],
-          ['Else',  8],
-          ['Sorting',  1],
-          ['React',  1],
-        ]);
-        var chart = new google.visualization.PieChart(document.getElementById('piecharts'));
-        chart.draw(Sneha);
-      }
-    </script>
-   <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart()
-      {
-        var Manoj = google.visualization.arrayToDataTable([
-          ['Topic', 'Notes'],
-          ['Inheritance',     9],
-          ['If',      4],
-          ['Switch',  2],
-          ['Elseif', 2],
-          ['React',    3]
-        ]);
-        var chart = new google.visualization.PieChart(document.getElementById('piechartm'));
-        chart.draw(Manoj);
-      }
-    </script>
-   <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart()
-      {
-        var Charan = google.visualization.arrayToDataTable([
-          ['Topic', 'Notes'],
-          ['Inheritance',     9],
-          ['Loops',      5],
-          ['If',  8],
-        ]);
-        var chart = new google.visualization.PieChart(document.getElementById('piechartc'));
-        chart.draw(Charan);
-      }
-    </script>
-   <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart()
-      {
-        var Raghu = google.visualization.arrayToDataTable([
-          ['Topic', 'Notes'],
-          ['React',     8],
-          ['Sorting',      6],
-          ['Switch',  4],
-        ]);
-        var chart = new google.visualization.PieChart(document.getElementById('piechartr'));
-        chart.draw(Raghu);
-      }
-    </script>
-   <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart()
-      {
-        var Hitesh = google.visualization.arrayToDataTable([
-          ['Topic', 'Notes'],
-          ['React',     9],
-          ['Loops',      1],
-          ['Inheritance',  8],
-        ]);
-        var chart = new google.visualization.PieChart(document.getElementById('piecharth'));
-        chart.draw(Hitesh);
+                    temp2.push(temp[0]);
+                    temp2.push(parseInt(temp[1]));
+                    my_addrows.push(temp2);
+                    // console.log(temp2);
+              }
+            var chart = new google.visualization.PieChart(document.getElementById('piecharts'));
+
+            var Sneha = google.visualization.arrayToDataTable(my_addrows);
+            chart.draw(Sneha);
+          }
+        }
+        jax.open("GET","http://localhost:5000/piechart");
+        jax.send();
+
+
+
       }
     </script>
     <script type="text/javascript">
@@ -328,26 +289,8 @@
            <div id="sankey_basic" style="width: 100%; height: 100%;"></div>
            <br><br>
            <p align="center">User vs No of Notes</p>
-           {% if current_user.firstname == "Sneha" %}
            <div id="piecharts" style="width: 100%; height: 100%;"></div>
-           {% endif %}
-
-           {% if current_user.firstname == "Manoj" %}
-           <div id="piechartm" style="width: 100%; height: 100%;"></div>
-           {% endif %}
-
-           {% if current_user.firstname == "Charan" %}
            
-           <div id="piechartc" style="width: 100%; height: 100%;"></div>
-           {% endif %}
-           {% if current_user.firstname == "Hitesh" %}
-           
-           <div id="piecharth" style="width: 100%; height: 100%;"></div>
-           {% endif %}
-           {% if current_user.firstname == "Raghu" %}
-           
-           <div id="piechartr" style="width: 100%; height: 100%;"></div>
-           {% endif %}
            <br><br>
            
           </div>

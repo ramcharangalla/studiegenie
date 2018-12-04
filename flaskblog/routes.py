@@ -303,6 +303,48 @@ def note(note_id):
     update_cache()
     return render_template('note.html', note=notes)
 
+@app.route("/piechart" , methods=['GET'])
+def piechart():
+    notes = Note.query.filter_by(user_id = current_user.id).all()
+    tagcounts = { "Java": 0, "C++": 0,"Python": 0, "JavaScript": 0, "Angular": 0,"React": 0, "MongoDB": 0, "HTML": 0,"CSS": 0, "Node.js":0 }
+    for note in notes:
+        for n in note.notetags:
+            if n.name == "Java":
+                x = tagcounts["Java"]
+                tagcounts["Java"] = x + 1
+            if n.name == "C++":
+                x = tagcounts["C++"]
+                tagcounts["C++"] = x + 1
+            if n.name == "Python":
+                x = tagcounts["Python"]
+                tagcounts["Python"] = x + 1
+            if n.name == "JavaScript":
+                x = tagcounts["JavaScript"]
+                tagcounts["JavaScript"] = x + 1
+            if n.name == "Angular":
+                x = tagcounts["Angular"]
+                tagcounts["Angular"] = x + 1
+            if n.name == "React":
+                x = tagcounts["React"]
+                tagcounts["React"] = x + 1
+            if n.name == "MongoDB":
+                x = tagcounts["MongoDB"]
+                tagcounts["MongoDB"] = x + 1
+            if n.name == "HTML":
+                x = tagcounts["HTML"]
+                tagcounts["HTML"] = x + 1
+            if n.name == "CSS":
+                x = tagcounts["CSS"]
+                tagcounts["CSS"] = x + 1
+            if n.name == "Node.js":
+                x = tagcounts["Node.js"]
+                tagcounts["Node.js"] = x + 1
+    stri1 = "Java," + str(tagcounts["Java"]) + ";C++," + str(tagcounts["C++"]) + ";Python," + str(tagcounts["Python"]) + ";JavaScript," + str(tagcounts["JavaScript"]) + ";Angular," + str(tagcounts["Angular"])
+    stri2 = ";React," + str(tagcounts["React"]) + ";MongoDB," + str(tagcounts["MongoDB"]) + ";HTML," + str(tagcounts["HTML"]) + ";CSS," + str(tagcounts["CSS"]) + ";Node.js," + str(tagcounts["Node.js"])
+    stri3 = stri1 + stri2
+    return stri3
+
+
 @app.route("/note/<int:note_id>/update", methods=['GET', 'POST'])
 @login_required
 def update_note(note_id):
