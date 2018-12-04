@@ -21,11 +21,11 @@ var layout = d3.layout.cloud()
 //         .attr("width", w)
 //         .attr("height", h);
 
-var svg = d3.select("#vis").append("svg")
+var svg = d3.select("#vis").append("svg").attr("style","display: inline-block;")
        .attr("width", w)
        .attr("height", h);
 
-var vis = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")");
+var vis = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")").attr("style","display: inline-block;");
 
     
 
@@ -39,8 +39,8 @@ else if(window.addEventListener) {
 }
 
 function draw(data, bounds) {
-    var w = 1000,
-        h = 500;
+    var w = 800,
+        h = 400;
 
     svg.attr("width", w).attr("height", h);
 

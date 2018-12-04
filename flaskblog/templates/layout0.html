@@ -46,6 +46,14 @@
                 <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>&nbsp&nbsp
                 <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>&nbsp&nbsp&nbsp
                 <a class="nav-item nav-link">Hi {{ current_user.firstname }} !</a>
+                <form class="navbar-form" role="search" action="/search">
+    <div class="input-group add-on">
+      <input class="form-control" placeholder="Search" name="srch-term" id="srch-term" type="text">
+      <div class="input-group-btn">
+        <button class="btn btn-default" type="submit"><img src="{{ url_for('static', filename='search.png') }}"  height="10" width="10"></i></button>
+      </div>
+    </div>
+  </form>
                 
             </div>
           </div>
