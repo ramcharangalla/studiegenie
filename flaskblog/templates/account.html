@@ -42,8 +42,8 @@
       {% endfor %}
       <div class="form-group">
         <p class="article-content"> No of Likes: {{ note.likes }}</p>
-        <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
-        <a  class="btn btn-outline-info btn-sm">Bookmark</a>&nbsp&nbsp
+        <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
+        <a  class="btn btn-info">Bookmark</a>&nbsp&nbsp
         
         
       </div>

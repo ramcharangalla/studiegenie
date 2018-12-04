@@ -29,13 +29,8 @@
       {% endfor %}
       <div class="form-group">
         <p class="article-content"> No of Likes: {{ note.likes }}</p>
-        <a  class="btn btn-outline-primary btn-sm"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
-        <a  class="btn btn-outline-info btn-sm" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
-        <a  class="btn btn-outline-info btn-sm" href="{{ url_for('follow', note_id=note.id) }}">Follow</a>
-        <br>
-        <br>
-        <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
-        <p><a class="btn btn-outline-primary btn-sm" href="{{ url_for('comment', note_id=note.id) }}" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"> Comment </a></p>
+        <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Like</a>&nbsp&nbsp
+        <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
       </div>
     </div>
     </article>
