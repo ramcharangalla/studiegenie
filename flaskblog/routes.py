@@ -56,8 +56,6 @@ def add_notes_to_index():
 def update_cache():
     app.notes_df = get_notes_df()
     app.interactions_df,app.user_words_df  = get_interactions_df()
-    print('user vs words shape')
-    print(app.user_words_df.head(1))
     app.interactions_df['eventStrength'] = app.interactions_df['eventType'].apply(lambda x: event_type_strength[x])
 
     app.users_interactions_count_df = app.interactions_df.groupby([interactions_userid, note_id]).size().groupby(interactions_userid).size()
@@ -111,6 +109,7 @@ def home():
     inters = Interaction.query.filter_by(user_id=current_user.id).all()
     if len(inters) == 0:
         notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
+        app.similar_users = ''
         return render_template('home.html', notes_trending = notes, recommendations_notes = notes,collab_notes =[] )
     trending_notes = get_personal_recommendations(current_user.id,topn=20)
     content_notes = get_content_based_recommendations(current_user.id,topn=20)
@@ -499,12 +498,21 @@ class ProfileBuilder:
         return item_profile
 
     def get_item_profiles(self,ids):
+        
+        f = np.float64(1.0)
+        
+        if type(f) == type(ids):
+            temp = []
+            temp.append(int(ids))
+            ids = temp
         item_profiles_list = [self.get_item_profile(x) for x in ids]
         item_profiles = scipy.sparse.vstack(item_profiles_list)
         return item_profiles
 
     def build_users_profile(self,person_id, interactions_indexed_df):
+        
         interactions_person_df = interactions_indexed_df.loc[person_id]
+        
         user_item_profiles = self.get_item_profiles(interactions_person_df[note_id])
         
         user_item_strengths = np.array(interactions_person_df['eventStrength']).reshape(-1,1)
@@ -614,7 +622,7 @@ def get_personal_recommendations(for_user_id,topn=10,verbose=False):
 def get_collab_filtering(for_user_id,topn=10):
     tfidf = TfidfVectorizer()
     df = app.user_words_df
-    print(df)
+    
     tfidf_matrix = tfidf.fit_transform(df['text'])
     # print('Users vs Features(Words)')
     # print(tfidf_matrix.shape)
@@ -643,7 +651,7 @@ def get_collab_filtering(for_user_id,topn=10):
     # print('Recommended Nptes Collab')
     # print(rec_ids)
 
-    print('Forming string')
+    
     app.similar_users = ''
     this_user = ''
     name_set = set()
@@ -733,10 +741,10 @@ def query_index(index, query, page, per_page):
 def newcheatsheet():
     title = request.form['title']
     cheat = Cheatsheet(title=title, user_id=current_user.id, date_created= now)
-    print (cheat)
+    
     db.session.add(cheat)
     db.session.commit()
-    print ("done")
+    
     return redirect(url_for('home'))
 
 @app.route("/addcheatsheet/<int:id>,<int:note_id>", methods=['GET', 'POST'])

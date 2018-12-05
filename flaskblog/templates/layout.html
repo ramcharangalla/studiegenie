@@ -129,6 +129,8 @@
           if (jax.readyState == XMLHttpRequest.DONE) 
           {
         res_data = jax.responseText;
+        if (res_data == '')
+          return;
         var data = new google.visualization.DataTable();
           data.addColumn('string', 'From');
           data.addColumn('string', 'To');
