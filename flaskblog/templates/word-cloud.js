@@ -34,7 +34,7 @@ else if(window.addEventListener) {
 
 function draw(data, bounds) {
     var w = 1200,
-        h = 600;
+        h = 700;
 
     svg.attr("width", w).attr("height", h);
 

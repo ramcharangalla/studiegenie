@@ -17,6 +17,15 @@
       <p class="article-content"> Claps: {{ note.likes }}</p><br>
       <a  class="btn btn-primary"  href="{{ url_for('like', note_id=note.id) }}">Clap</a>&nbsp&nbsp
       <a  class="btn btn-info" href="{{ url_for('bookmark', note_id=note.id) }}">Bookmark</a>&nbsp&nbsp
+      <div class="btn-group dropright">
+          <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Add to Cheat Sheet </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" data-toggle="modal" data-target="#cheatModal" href="#">Create a New CheatSheet </a>
+            {% for n in cheats %}
+            <a class="dropdown-item" href="{{ url_for('addcheatsheet', id=n.id, note_id=note.id ) }}"> {{ n.title }} </a>
+            {% endfor %}
+          </div>
+        </div>
       <br>      <br>
       <textarea class="form-control rounded-0" id="exampleFormControlTextarea2" rows="2"></textarea><br>
       

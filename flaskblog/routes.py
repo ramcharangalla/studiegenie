@@ -131,7 +131,7 @@ def home():
     collab_ids = get_collab_filtering(current_user.id,topn=10)
     for id_ in collab_ids:
         notes_collab.append(Note.query.filter_by(id = id_).first())
-    cheatnotes = Cheatsheet.query.all()
+    cheatnotes = Cheatsheet.query.filter_by(user_id=current_user.id).all()
     return render_template('home.html', notes_trending = notes_t, recommendations_notes = notes_c,collab_notes =notes_collab,cheats=cheatnotes )
 
 @app.route("/note/<int:note_id>/like", methods=['GET', 'POST'])
@@ -181,7 +181,8 @@ def bookmark(note_id):
 def search():
     term = request.args.get('srch-term')
     notes = my_search(term,app.index_name)
-    return  render_template('account.html', notes = notes, count = len(notes), user = None, title  = 'Search results for:'+term)
+    cheatnotes = Cheatsheet.query.filter_by(user_id=current_user.id).all()
+    return  render_template('account.html', notes = notes, count = len(notes), user = None, title  = 'Search results for:'+term,cheats=cheatnotes)
 
 
 
@@ -319,7 +320,8 @@ def note(note_id):
     db.session.add(interaction)
     db.session.commit()
     update_cache()
-    return render_template('note.html', note=notes)
+    cheatnotes = Cheatsheet.query.filter_by(user_id=current_user.id).all()
+    return render_template('note.html', note=notes,cheats = cheatnotes)
 
 @app.route("/piechart" , methods=['GET'])
 def piechart():
@@ -757,6 +759,9 @@ def addcheatsheet(id,note_id):
 
 @app.route("/cheatsheet/<int:id>")
 def cheatsheet(id):
+    print('cheatsheet id')
+    print(id)
     cheats = Cheatsheet.query.get_or_404(id)
+    print(cheats)
     users = User.query.filter_by(id=current_user.id).first_or_404()
     return render_template('cheatsheet.html', cheats=cheats, user=users)
