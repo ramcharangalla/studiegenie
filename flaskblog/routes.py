@@ -181,7 +181,7 @@ def bookmark(note_id):
 def search():
     term = request.args.get('srch-term')
     notes = my_search(term,app.index_name)
-    return  render_template('account.html', notes = notes, count = len(notes), user = None, title  = 'Search results')
+    return  render_template('account.html', notes = notes, count = len(notes), user = None, title  = 'Search results for:'+term)
 
 
 
