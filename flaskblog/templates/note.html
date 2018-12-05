@@ -59,4 +59,22 @@
     </div>
   </div>
 
+<!-- Modal -->
+<div class="modal fade" id="cheatModal" tabindex="-1" role="dialog" aria-labelledby="cheatModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Create a CheatSheet ?</h5>
+      </div>
+      <div class="modal-header">
+        <form method="POST" action="{{ url_for('newcheatsheet') }}">
+          <p>Title</p>
+          <input type="text" name="title">
+          <input class="btn btn-primary" type="submit" value="Create">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}

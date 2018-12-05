@@ -111,8 +111,8 @@ def home():
         notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
         app.similar_users = ''
         return render_template('home.html', notes_trending = notes, recommendations_notes = notes,collab_notes =[] )
-    trending_notes = get_personal_recommendations(current_user.id,topn=20)
-    content_notes = get_content_based_recommendations(current_user.id,topn=20)
+    trending_notes = get_personal_recommendations(current_user.id,topn=10)
+    content_notes = get_content_based_recommendations(current_user.id,topn=10)
     # print('Content based IDS ')
     ids = content_notes['contentId']
     # print(ids)
@@ -174,7 +174,8 @@ def bookmark(note_id):
     notes_c =  Note.query.filter(Note.id.in_(ids)).all()
     notes_t =  Note.query.filter(Note.id.in_(trending_ids)).all()
     #notes = Note.query.order_by(Note.date_created.desc()).filter_by(mode='public').all()
-    return render_template('home.html',notes_trending = notes_t, recommendations_notes = notes_c )
+    #return render_template('home.html',notes_trending = notes_t, recommendations_notes = notes_c )
+    return redirect(url_for('home'))
 
 @app.route("/search", methods=['GET', 'POST'])
 @login_required
